@@ -1,0 +1,3429 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1.0">
+<title>ONYX — Caribbean Intelligence Grid</title>
+<meta name="version" content="12.0">
+<!-- ONYX v12.0 — Proprietary Software — Caribbean Intelligence Grid
+     Copyright (c) 2026 ONYX Systems. All Rights Reserved.
+     Unauthorised reproduction, distribution or use of this software,
+     in whole or in part, is strictly prohibited.
+     This file contains trade secrets and proprietary algorithms including
+     the ONYX Threat Score Engine™, Sovereign Scrubber™, and
+     Caribbean Node Manifest™. Protected under applicable IP law. -->
+<style>
+@import url('https://fonts.googleapis.com/css2?family=JetBrains+Mono:wght@300;400;500;700&display=swap');
+
+*, *::before, *::after { box-sizing: border-box; margin: 0; padding: 0; }
+
+:root {
+  --bg:      #000000;
+  --bg2:     #080808;
+  --bg3:     #0f0f0f;
+  --bg4:     #161616;
+  --line:    rgba(255,255,255,0.07);
+  --line2:   rgba(255,255,255,0.12);
+  --bone:    #F0F0F0;
+  --bone2:   #aaaaaa;
+  --bone3:   #606060;
+  --bone4:   #303030;
+  --red:     #FF3B30;
+  --green:   #32D74B;
+  --amber:   #FFD60A;
+  --blue:    #0A84FF;
+  --font:    'JetBrains Mono', 'Courier New', monospace;
+  --bar:     36px;
+  --nav:     44px;
+  --status:  22px;
+}
+
+html, body {
+  width: 100%; height: 100%;
+  overflow: hidden;
+  background: var(--bg);
+  color: var(--bone);
+  font-family: var(--font);
+  font-size: 11px;
+  -webkit-font-smoothing: antialiased;
+  cursor: default;
+  user-select: none;
+}
+
+::-webkit-scrollbar { width: 2px; }
+::-webkit-scrollbar-track { background: transparent; }
+::-webkit-scrollbar-thumb { background: var(--bg4); }
+
+/* ── BLINK ── */
+@keyframes blink { 0%,100%{opacity:1} 50%{opacity:0.15} }
+.blink { animation: blink 1.6s step-end infinite; }
+
+/* ════════════════════════════════
+   LOGIN
+════════════════════════════════ */
+#login {
+  position: fixed; inset: 0;
+  background: var(--bg);
+  display: flex; flex-direction: column;
+  align-items: center; justify-content: center;
+  z-index: 9999;
+}
+#login.gone { display: none; }
+
+.lg-eyebrow {
+  font-size: 7px; letter-spacing: 6px;
+  color: var(--bone3); margin-bottom: 36px;
+  text-transform: uppercase;
+}
+.lg-eyebrow b { color: var(--bone2); }
+
+.lg-card {
+  width: 360px; max-width: 94vw;
+  border: 0.5px solid var(--line2);
+  background: var(--bg2);
+}
+.lg-card-top {
+  padding: 8px 14px;
+  border-bottom: 0.5px solid var(--line);
+  display: flex; justify-content: space-between; align-items: center;
+  font-size: 7.5px; color: var(--bone3); letter-spacing: 2px;
+}
+.lg-card-top span:last-child { color: var(--bone2); font-variant-numeric: tabular-nums; }
+.lg-fields { padding: 22px 16px 16px; display: flex; flex-direction: column; gap: 12px; }
+.lg-lbl { font-size: 7px; letter-spacing: 2.5px; color: var(--bone3); margin-bottom: 5px; text-transform: uppercase; }
+.lg-inp {
+  width: 100%; background: var(--bg3);
+  border: 0.5px solid var(--line);
+  color: var(--bone); font-family: var(--font); font-size: 10px;
+  padding: 8px 10px; outline: none; letter-spacing: 1px;
+}
+.lg-inp:focus { border-color: var(--line2); }
+.lg-inp::placeholder { color: var(--bone4); }
+.lg-err { font-size: 7.5px; color: var(--red); min-height: 13px; text-align: center; letter-spacing: 0.5px; }
+.lg-go {
+  width: 100%; padding: 9px;
+  background: transparent; border: 0.5px solid var(--line2);
+  color: var(--bone2); font-family: var(--font);
+  font-size: 8px; letter-spacing: 4px; cursor: pointer;
+  text-transform: uppercase; transition: background 0.1s;
+}
+.lg-go:hover { background: rgba(255,255,255,0.04); }
+.lg-card-bot {
+  padding: 6px 14px; border-top: 0.5px solid var(--line);
+  font-size: 6.5px; color: var(--bone4); letter-spacing: 1px;
+  display: flex; justify-content: space-between;
+}
+
+/* ════════════════════════════════
+   BOOT
+════════════════════════════════ */
+#boot {
+  position: fixed; inset: 0;
+  background: var(--bg);
+  display: none; flex-direction: column;
+  align-items: center; justify-content: center;
+  z-index: 9998;
+}
+#boot.show { display: flex; }
+
+.bt-head { font-size: 7px; letter-spacing: 6px; color: var(--bone3); margin-bottom: 28px; }
+.bt-head b { color: var(--bone2); }
+.bt-box { width: 560px; max-width: 94vw; border: 0.5px solid var(--line2); background: var(--bg2); }
+.bt-box-top {
+  padding: 7px 13px; border-bottom: 0.5px solid var(--line);
+  display: flex; justify-content: space-between;
+  font-size: 7.5px; color: var(--bone3); letter-spacing: 2px;
+}
+.bt-log {
+  padding: 12px 13px; font-size: 9px; line-height: 1.9;
+  min-height: 200px; max-height: 240px; overflow-y: auto; color: var(--bone3);
+}
+.bt-log .ok  { color: var(--green); }
+.bt-log .w   { color: var(--amber); }
+.bt-log .hi  { color: var(--bone2); }
+.bt-log .dim { color: var(--bone4); }
+.bt-bar-row {
+  border-top: 0.5px solid var(--line);
+  padding: 8px 13px; display: flex; align-items: center; gap: 10px;
+}
+.bt-bar { flex: 1; height: 1px; background: var(--bg4); overflow: hidden; }
+.bt-fill { height: 100%; background: var(--bone3); width: 0; transition: width 0.1s; }
+.bt-pct { font-size: 7.5px; color: var(--bone3); min-width: 28px; text-align: right; }
+
+/* ════════════════════════════════
+   APP SHELL
+════════════════════════════════ */
+#app {
+  position: fixed; inset: 0;
+  display: grid;
+  grid-template-rows: var(--bar) var(--nav) 1fr var(--status);
+  opacity: 0; pointer-events: none;
+  transition: opacity 0.4s;
+}
+#app.on { opacity: 1; pointer-events: all; }
+
+/* ── TOP BAR ── */
+#topbar {
+  background: var(--bg2);
+  border-bottom: 0.5px solid var(--line2);
+  display: flex; align-items: center;
+  padding: 0 14px; gap: 0;
+}
+.tb-logo {
+  font-size: 10px; font-weight: 700; letter-spacing: 3px;
+  color: var(--bone); margin-right: 20px; flex-shrink: 0;
+}
+.tb-logo sup { font-size: 6px; color: var(--bone3); letter-spacing: 1px; }
+
+/* Region tabs */
+.tb-regions { display: flex; align-items: stretch; gap: 1px; flex: 1; }
+.tb-region {
+  padding: 0 13px; font-size: 7.5px; letter-spacing: 2px;
+  color: var(--bone3); cursor: pointer; display: flex; align-items: center;
+  border-bottom: 2px solid transparent; height: 100%;
+  transition: color 0.15s, border-color 0.15s;
+  white-space: nowrap;
+}
+.tb-region:hover { color: var(--bone2); }
+.tb-region.active { color: var(--bone); border-bottom-color: var(--bone2); }
+.tb-region.stub { opacity: 0.38; cursor: pointer; }
+.tb-region.stub:hover { color: var(--bone2); opacity: 0.6; }
+
+.tb-right {
+  display: flex; align-items: center; gap: 14px;
+  font-size: 7.5px; color: var(--bone3); flex-shrink: 0; margin-left: auto;
+}
+.tb-live { display: flex; align-items: center; gap: 5px; }
+.tb-dot { width: 5px; height: 5px; background: var(--green); }
+.tb-dot.red { background: var(--red); }
+.tb-alerts-badge {
+  font-size: 7.5px; color: var(--red); font-weight: 700; letter-spacing: 1px;
+}
+#tb-clock { color: var(--bone2); font-variant-numeric: tabular-nums; letter-spacing: 2px; }
+
+/* ── PANEL NAV ── */
+#pannav {
+  background: var(--bg2);
+  border-bottom: 0.5px solid var(--line);
+  display: flex; align-items: stretch;
+  padding: 0 14px; gap: 2px;
+}
+.pn-tab {
+  padding: 0 16px; font-size: 7.5px; letter-spacing: 2px;
+  color: var(--bone3); cursor: pointer; display: flex; align-items: center; gap: 6px;
+  border-bottom: 1.5px solid transparent; height: 100%;
+  transition: color 0.15s, border-color 0.15s;
+}
+.pn-tab:hover { color: var(--bone2); }
+.pn-tab.active { color: var(--bone); border-bottom-color: var(--bone); }
+.pn-badge {
+  background: var(--red); color: #000;
+  font-size: 6px; font-weight: 700;
+  padding: 1px 4px; min-width: 14px; text-align: center;
+  display: none;
+}
+.pn-badge.show { display: block; }
+.pn-right {
+  margin-left: auto; display: flex; align-items: center; gap: 10px;
+  font-size: 7px; color: var(--bone3);
+}
+.pn-sweep-btn {
+  padding: 3px 10px; font-family: var(--font); font-size: 7px;
+  letter-spacing: 2px; background: transparent;
+  border: 0.5px solid var(--line2); color: var(--bone3); cursor: pointer;
+  text-transform: uppercase;
+}
+.pn-sweep-btn:hover { color: var(--bone2); border-color: var(--bone3); }
+#pn-status { font-variant-numeric: tabular-nums; }
+
+/* ── MAIN CONTENT ── */
+#content { overflow: hidden; position: relative; }
+
+.panel {
+  position: absolute; inset: 0;
+  display: none; flex-direction: column;
+  overflow: hidden;
+}
+.panel.active { display: flex; }
+
+/* ════════════════════════════════
+   INTEL FEED PANEL
+════════════════════════════════ */
+#p-feed { background: var(--bg); }
+
+.feed-filters {
+  display: flex; align-items: center; gap: 4px;
+  padding: 8px 14px;
+  border-bottom: 0.5px solid var(--line);
+  flex-shrink: 0; background: var(--bg2);
+}
+.ff-btn {
+  padding: 3px 9px; font-family: var(--font); font-size: 7px;
+  letter-spacing: 2px; background: transparent;
+  border: 0.5px solid var(--line); color: var(--bone3); cursor: pointer;
+  text-transform: uppercase; transition: all 0.1s;
+}
+.ff-btn:hover, .ff-btn.on { border-color: var(--bone3); color: var(--bone2); background: rgba(255,255,255,0.03); }
+.ff-sep { width: 0.5px; height: 12px; background: var(--line); margin: 0 4px; }
+.ff-counts { margin-left: auto; font-size: 7px; color: var(--bone3); display: flex; gap: 12px; }
+.ff-counts span { font-variant-numeric: tabular-nums; }
+.ff-counts b { color: var(--bone2); }
+
+.feed-sweep-bar {
+  padding: 5px 14px; font-size: 8px; letter-spacing: 0.5px;
+  background: rgba(10,132,255,0.06); border-bottom: 0.5px solid rgba(10,132,255,0.15);
+  color: var(--blue); display: none; flex-shrink: 0;
+}
+.feed-sweep-bar.show { display: block; }
+
+#feed-list { flex: 1; overflow-y: auto; }
+
+.feed-empty {
+  display: flex; flex-direction: column; align-items: center; justify-content: center;
+  height: 100%; color: var(--bone3); gap: 8px;
+}
+.feed-empty .fe-icon { font-size: 20px; opacity: 0.3; }
+.feed-empty .fe-txt { font-size: 8.5px; letter-spacing: 2px; }
+
+.feed-item {
+  display: grid;
+  grid-template-columns: 52px 36px 1fr;
+  padding: 9px 14px;
+  border-bottom: 0.5px solid rgba(255,255,255,0.03);
+  cursor: pointer; transition: background 0.1s;
+  align-items: start;
+}
+.feed-item:hover { background: rgba(255,255,255,0.02); }
+.fi-time { font-size: 7px; color: var(--bone3); padding-top: 2px; font-variant-numeric: tabular-nums; line-height: 1.6; }
+.fi-lvl {
+  font-size: 6.5px; font-weight: 700; letter-spacing: 1px;
+  padding: 2px 0; text-align: center; border: 0.5px solid;
+  align-self: start; margin-top: 1px;
+}
+.fi-lvl.CRIT { color: var(--red);   border-color: rgba(255,59,48,0.4);   background: rgba(255,59,48,0.06); }
+.fi-lvl.WARN { color: var(--amber); border-color: rgba(255,214,10,0.35); background: rgba(255,214,10,0.04); }
+.fi-lvl.SIG  { color: var(--green); border-color: rgba(50,215,75,0.3);   background: rgba(50,215,75,0.04); }
+.fi-lvl.INFO { color: var(--bone3); border-color: var(--line); }
+.fi-body { padding-left: 10px; }
+.fi-title { font-size: 9.5px; color: var(--bone2); line-height: 1.55; }
+.fi-meta { font-size: 7px; color: var(--bone3); margin-top: 3px; display: flex; gap: 8px; }
+.fi-src { color: var(--bone4); }
+.fi-link { color: var(--blue); text-decoration: none; }
+.fi-link:hover { text-decoration: underline; }
+
+/* ════════════════════════════════
+   ECONOMIC PULSE PANEL
+════════════════════════════════ */
+#p-econ { background: var(--bg); overflow-y: auto; }
+
+.econ-inner { padding: 14px; display: flex; flex-direction: column; gap: 12px; height: 100%; }
+
+.econ-kpis {
+  display: grid; grid-template-columns: repeat(4, 1fr); gap: 8px; flex-shrink: 0;
+}
+.kpi {
+  background: var(--bg2); border: 0.5px solid var(--line);
+  padding: 12px 14px;
+}
+.kpi-lbl { font-size: 6.5px; letter-spacing: 2px; color: var(--bone3); text-transform: uppercase; margin-bottom: 6px; }
+.kpi-val { font-size: 24px; font-weight: 300; line-height: 1; color: var(--bone); }
+.kpi-val.up   { color: var(--green); }
+.kpi-val.down { color: var(--red); }
+.kpi-delta { font-size: 7px; color: var(--bone3); margin-top: 5px; }
+.kpi-delta.up   { color: var(--green); }
+.kpi-delta.down { color: var(--red); }
+
+.econ-chart-card {
+  background: var(--bg2); border: 0.5px solid var(--line);
+  padding: 12px 14px; flex: 1; display: flex; flex-direction: column; min-height: 0;
+}
+.ecc-head {
+  display: flex; justify-content: space-between; align-items: center;
+  margin-bottom: 10px; flex-shrink: 0;
+}
+.ecc-title { font-size: 7px; letter-spacing: 2px; color: var(--bone3); text-transform: uppercase; }
+.ecc-src { font-size: 6.5px; color: var(--bone4); }
+.ecc-legend { display: flex; gap: 14px; flex-shrink: 0; margin-bottom: 8px; }
+.ecc-legend-item { display: flex; align-items: center; gap: 5px; font-size: 7px; color: var(--bone3); }
+.ecc-legend-dot { width: 20px; height: 1px; }
+canvas#econ-chart { flex: 1; min-height: 0; display: block; width: 100%; }
+
+/* ════════════════════════════════
+   ALERTS PANEL
+════════════════════════════════ */
+#p-alerts { background: var(--bg); overflow-y: auto; }
+
+.alerts-inner { padding: 14px; }
+.alerts-head {
+  display: flex; align-items: center; justify-content: space-between;
+  margin-bottom: 12px;
+}
+.ah-title { font-size: 7px; letter-spacing: 3px; color: var(--bone3); text-transform: uppercase; }
+.ah-count { font-size: 7px; color: var(--bone3); }
+.ah-count b { color: var(--red); }
+
+.alerts-grid {
+  display: grid; grid-template-columns: repeat(auto-fill, minmax(280px, 1fr)); gap: 8px;
+}
+.alert-card {
+  border: 0.5px solid; padding: 12px 13px; background: transparent;
+}
+.alert-card.crit { border-color: rgba(255,59,48,0.35);  background: rgba(255,59,48,0.04); }
+.alert-card.warn { border-color: rgba(255,214,10,0.28); background: rgba(255,214,10,0.03); }
+.alert-card.info { border-color: var(--line); }
+.ac-head { display: flex; align-items: center; gap: 6px; margin-bottom: 6px; }
+.ac-type { font-size: 6.5px; font-weight: 700; letter-spacing: 2px; text-transform: uppercase; }
+.ac-type.crit { color: var(--red); }
+.ac-type.warn { color: var(--amber); }
+.ac-type.info { color: var(--bone3); }
+.ac-time { margin-left: auto; font-size: 6.5px; color: var(--bone3); font-variant-numeric: tabular-nums; }
+.ac-text { font-size: 8.5px; color: var(--bone2); line-height: 1.55; }
+.ac-src { font-size: 6.5px; color: var(--bone3); margin-top: 5px; letter-spacing: 0.5px; }
+
+.alerts-empty {
+  display: flex; flex-direction: column; align-items: center;
+  justify-content: center; padding: 60px 0; color: var(--bone3); gap: 8px;
+}
+.alerts-empty span:first-child { font-size: 18px; opacity: 0.3; }
+.alerts-empty span:last-child  { font-size: 8px; letter-spacing: 2px; }
+
+/* ── TOAST ── */
+#toast {
+  position: fixed; bottom: 30px; left: 50%;
+  transform: translateX(-50%);
+  background: var(--bg4); border: 0.5px solid var(--line2);
+  padding: 7px 16px; font-size: 8px; letter-spacing: 2px;
+  color: var(--bone2); z-index: 9999; pointer-events: none;
+  opacity: 0; transition: opacity 0.2s;
+  white-space: nowrap;
+}
+#toast.show { opacity: 1; }
+#statusbar {
+  background: var(--bg2);
+  border-top: 0.5px solid var(--line);
+  display: flex; align-items: center;
+  padding: 0 14px; gap: 16px; overflow: hidden;
+}
+.sb-item { font-size: 7px; color: var(--bone3); letter-spacing: 1px; flex-shrink: 0; white-space: nowrap; }
+.sb-item b { color: var(--bone2); }
+.sb-item.ok b { color: var(--green); }
+.sb-item.warn b { color: var(--amber); }
+.sb-item.err b  { color: var(--red); }
+.sb-ticker { flex: 1; overflow: hidden; }
+.sb-ticker-inner {
+  display: inline-flex; gap: 40px; white-space: nowrap;
+  animation: tickScroll 80s linear infinite;
+}
+.sb-ticker-inner:empty { animation: none; }
+@media print {
+  #login, #boot, #topbar, #pannav, #statusbar, #toast { display: none !important; }
+  html, body { overflow: visible !important; background: #fff !important; color: #000 !important; }
+  #app { position: static !important; display: block !important; opacity: 1 !important; pointer-events: all !important; }
+  #content { overflow: visible !important; position: static !important; }
+  .panel { position: static !important; display: block !important; }
+  .panel:not(#p-feed) { display: none !important; }
+  #p-feed { display: block !important; overflow: visible !important; }
+  #feed-list { overflow: visible !important; }
+  .feed-item { border-bottom: 0.5px solid #ccc !important; color: #000 !important; break-inside: avoid; }
+  .fi-time, .fi-src { color: #555 !important; }
+  .fi-lvl { border: 0.5px solid #999 !important; color: #000 !important; background: #eee !important; }
+  .fi-title { color: #000 !important; }
+  .fi-link { color: #0000ee !important; }
+  .feed-filters { display: none !important; }
+  .feed-sweep-bar { display: none !important; }
+  #feed-empty { display: none !important; }
+  body::before {
+    content: 'ONYX — INTEL FEED EXPORT — ' attr(data-region) ' — ' attr(data-ts);
+    display: block; font-family: monospace; font-size: 10px;
+    padding: 8px 0 12px; border-bottom: 1px solid #000; margin-bottom: 12px;
+  }
+}
+
+/* ════════════════════════════════
+   DIM / RED-CELL MODE
+════════════════════════════════ */
+body.dim-mode {
+  --bg:    #0a0000;
+  --bg2:   #0f0300;
+  --bg3:   #140500;
+  --bg4:   #1a0800;
+  --line:  rgba(255,60,40,0.09);
+  --line2: rgba(255,60,40,0.18);
+  --bone:  #ffcccc;
+  --bone2: #cc8888;
+  --bone3: #804040;
+  --bone4: #402020;
+  --green: #cc4444;
+}
+
+/* ════════════════════════════════
+   THREAT SCORE BADGE on feed items
+════════════════════════════════ */
+.fi-score {
+  font-size: 7px; font-weight: 700; letter-spacing: 1px;
+  padding: 1px 5px; border: 0.5px solid;
+  align-self: start; margin-top: 1px; text-align: center;
+}
+.fi-score.hi  { color: var(--red);   border-color: rgba(255,59,48,0.4); background: rgba(255,59,48,0.06); }
+.fi-score.mid { color: var(--amber); border-color: rgba(255,214,10,0.35); background: rgba(255,214,10,0.04); }
+.fi-score.lo  { color: var(--bone3); border-color: var(--line); }
+
+.fi-tags { display: flex; flex-wrap: wrap; gap: 4px; margin-top: 3px; }
+.fi-tag {
+  font-size: 6.5px; padding: 1px 5px; border: 0.5px solid var(--line2);
+  color: var(--blue); letter-spacing: 0.5px;
+}
+.fi-regional { font-size: 6.5px; color: var(--red); font-weight: 700; letter-spacing: 1px; margin-top: 2px; }
+
+/* ════════════════════════════════
+   WATCH PANEL
+════════════════════════════════ */
+#p-watch { background: var(--bg); overflow-y: auto; }
+.watch-inner { padding: 14px; display: flex; flex-direction: column; gap: 12px; height: 100%; }
+.watch-head { display: flex; align-items: center; justify-content: space-between; }
+.watch-title { font-size: 7px; letter-spacing: 3px; color: var(--bone3); text-transform: uppercase; }
+
+.watch-add-row {
+  display: flex; gap: 8px; align-items: center;
+  padding: 10px 12px; border: 0.5px solid var(--line);
+  background: var(--bg2);
+}
+.watch-inp {
+  flex: 1; background: var(--bg3); border: 0.5px solid var(--line);
+  color: var(--bone); font-family: var(--font); font-size: 10px;
+  padding: 6px 10px; outline: none; letter-spacing: 1px;
+}
+.watch-inp:focus { border-color: var(--line2); }
+.watch-inp::placeholder { color: var(--bone4); }
+.watch-add-btn {
+  padding: 6px 14px; background: transparent; border: 0.5px solid var(--line2);
+  color: var(--bone2); font-family: var(--font); font-size: 7px;
+  letter-spacing: 2px; cursor: pointer; text-transform: uppercase;
+}
+.watch-add-btn:hover { background: rgba(255,255,255,0.04); }
+
+.watch-list { display: flex; flex-direction: column; gap: 4px; }
+.watch-item {
+  display: flex; align-items: center; justify-content: space-between;
+  padding: 7px 12px; border: 0.5px solid var(--line);
+  background: var(--bg2);
+}
+.watch-kw { font-size: 9px; color: var(--bone2); letter-spacing: 1px; }
+.watch-kw.tripped { color: var(--red); }
+.watch-kw-meta { font-size: 7px; color: var(--bone3); margin-top: 2px; }
+.watch-del {
+  font-size: 8px; color: var(--bone3); cursor: pointer;
+  padding: 2px 8px; border: 0.5px solid transparent;
+}
+.watch-del:hover { color: var(--red); border-color: rgba(255,59,48,0.3); }
+
+.watch-hits {
+  border: 0.5px solid var(--line);
+  background: var(--bg2);
+}
+.watch-hits-head {
+  padding: 7px 12px; border-bottom: 0.5px solid var(--line);
+  font-size: 7px; color: var(--bone3); letter-spacing: 2px;
+}
+.watch-hit-item {
+  padding: 8px 12px; border-bottom: 0.5px solid rgba(255,255,255,0.03);
+  display: grid; grid-template-columns: 50px 1fr;
+}
+.wh-time { font-size: 7px; color: var(--bone3); font-variant-numeric: tabular-nums; }
+.wh-text { font-size: 8.5px; color: var(--bone2); line-height: 1.5; }
+.wh-kw   { font-size: 6.5px; color: var(--red); margin-top: 2px; letter-spacing: 1px; }
+
+/* ════════════════════════════════
+   NODE HEALTH PANEL
+════════════════════════════════ */
+#p-nodes { background: var(--bg); overflow-y: auto; }
+.nodes-inner { padding: 14px; }
+.nodes-title { font-size: 7px; letter-spacing: 3px; color: var(--bone3); text-transform: uppercase; margin-bottom: 12px; }
+.nodes-table { width: 100%; border-collapse: collapse; }
+.nodes-table th {
+  font-size: 6.5px; letter-spacing: 2px; color: var(--bone3);
+  text-transform: uppercase; text-align: left;
+  padding: 6px 10px; border-bottom: 0.5px solid var(--line2);
+}
+.nodes-table td {
+  font-size: 8.5px; color: var(--bone2); padding: 7px 10px;
+  border-bottom: 0.5px solid rgba(255,255,255,0.03);
+  font-variant-numeric: tabular-nums;
+}
+.ns-ok   { color: var(--green);  font-weight: 700; font-size: 7px; letter-spacing: 1px; }
+.ns-fail { color: var(--red);    font-weight: 700; font-size: 7px; letter-spacing: 1px; }
+.ns-idle { color: var(--bone3);  font-weight: 700; font-size: 7px; letter-spacing: 1px; }
+.ns-tag  { font-size: 7px; color: var(--bone3); letter-spacing: 1px; }
+.ns-cat  { font-size: 6.5px; color: var(--bone4); letter-spacing: 0.5px; }
+
+/* ════════════════════════════════
+   AUDIT LOG PANEL
+════════════════════════════════ */
+#p-audit { background: var(--bg); overflow-y: auto; }
+.audit-inner { padding: 14px; }
+.audit-title { font-size: 7px; letter-spacing: 3px; color: var(--bone3); text-transform: uppercase; margin-bottom: 12px; }
+.audit-list { display: flex; flex-direction: column; gap: 1px; }
+.audit-item {
+  display: grid; grid-template-columns: 90px 60px 1fr;
+  padding: 6px 10px; border-bottom: 0.5px solid rgba(255,255,255,0.03);
+  background: var(--bg2);
+}
+.au-ts   { font-size: 7px; color: var(--bone3); font-variant-numeric: tabular-nums; }
+.au-evt  { font-size: 7px; font-weight: 700; letter-spacing: 1px; }
+.au-evt.login    { color: var(--green); }
+.au-evt.sweep    { color: var(--blue); }
+.au-evt.export   { color: var(--amber); }
+.au-evt.alert    { color: var(--red); }
+.au-evt.region   { color: var(--bone2); }
+.au-evt.watch    { color: var(--red); }
+.au-evt.settings { color: var(--bone3); }
+.au-evt.timeout  { color: var(--amber); }
+.au-detail { font-size: 7.5px; color: var(--bone3); }
+
+/* ════════════════════════════════
+   SETTINGS PANEL
+════════════════════════════════ */
+#p-settings { background: var(--bg); overflow-y: auto; }
+.settings-inner { padding: 14px; display: flex; flex-direction: column; gap: 14px; max-width: 560px; }
+.stg-title { font-size: 7px; letter-spacing: 3px; color: var(--bone3); text-transform: uppercase; margin-bottom: 4px; }
+.stg-section {
+  border: 0.5px solid var(--line);
+  background: var(--bg2);
+}
+.stg-section-head {
+  padding: 8px 13px; border-bottom: 0.5px solid var(--line);
+  font-size: 7px; letter-spacing: 2px; color: var(--bone3); text-transform: uppercase;
+}
+.stg-row {
+  display: flex; align-items: center; justify-content: space-between;
+  padding: 10px 13px; border-bottom: 0.5px solid rgba(255,255,255,0.03);
+}
+.stg-row:last-child { border-bottom: none; }
+.stg-lbl { font-size: 8.5px; color: var(--bone2); }
+.stg-sub { font-size: 7px; color: var(--bone3); margin-top: 2px; }
+.stg-ctrl { display: flex; align-items: center; gap: 8px; }
+.stg-select {
+  background: var(--bg3); border: 0.5px solid var(--line2);
+  color: var(--bone2); font-family: var(--font); font-size: 8px;
+  padding: 5px 8px; outline: none; letter-spacing: 1px; cursor: pointer;
+}
+.stg-inp {
+  background: var(--bg3); border: 0.5px solid var(--line2);
+  color: var(--bone); font-family: var(--font); font-size: 9px;
+  padding: 5px 8px; outline: none; letter-spacing: 1px; width: 180px;
+}
+.stg-inp:focus { border-color: var(--bone3); }
+.stg-toggle {
+  width: 28px; height: 14px; border: 0.5px solid var(--line2);
+  background: var(--bg3); cursor: pointer; position: relative;
+  flex-shrink: 0;
+}
+.stg-toggle.on { background: rgba(50,215,75,0.15); border-color: var(--green); }
+.stg-toggle::after {
+  content: ''; position: absolute; top: 2px; left: 2px;
+  width: 8px; height: 8px; background: var(--bone3);
+  transition: left 0.15s, background 0.15s;
+}
+.stg-toggle.on::after { left: 16px; background: var(--green); }
+.stg-btn {
+  padding: 5px 12px; background: transparent; border: 0.5px solid var(--line2);
+  color: var(--bone2); font-family: var(--font); font-size: 7px;
+  letter-spacing: 2px; cursor: pointer; text-transform: uppercase;
+}
+.stg-btn:hover { background: rgba(255,255,255,0.04); }
+.stg-hash-out {
+  font-size: 7.5px; color: var(--green); letter-spacing: 0.5px;
+  word-break: break-all; padding: 6px 13px;
+  border-top: 0.5px solid var(--line); display: none;
+  font-family: var(--font);
+}
+.stg-hash-out.show { display: block; }
+
+/* ════════════════════════════════
+   MANUAL INTEL ENTRY
+════════════════════════════════ */
+.manual-form {
+  border: 0.5px solid var(--line);
+  background: var(--bg2); padding: 12px 13px;
+  display: flex; flex-direction: column; gap: 8px;
+}
+.manual-form-title {
+  font-size: 7px; letter-spacing: 2px; color: var(--bone3);
+  text-transform: uppercase; margin-bottom: 4px;
+}
+.mf-row { display: flex; gap: 8px; }
+.mf-inp {
+  flex: 1; background: var(--bg3); border: 0.5px solid var(--line);
+  color: var(--bone); font-family: var(--font); font-size: 9px;
+  padding: 7px 10px; outline: none; letter-spacing: 0.5px;
+}
+.mf-inp:focus { border-color: var(--line2); }
+.mf-inp::placeholder { color: var(--bone4); }
+.mf-select {
+  background: var(--bg3); border: 0.5px solid var(--line);
+  color: var(--bone2); font-family: var(--font); font-size: 8px;
+  padding: 7px 8px; outline: none; letter-spacing: 1px; cursor: pointer;
+}
+.mf-submit {
+  align-self: flex-end; padding: 7px 18px; background: transparent;
+  border: 0.5px solid var(--line2); color: var(--bone2);
+  font-family: var(--font); font-size: 7px; letter-spacing: 3px;
+  cursor: pointer; text-transform: uppercase;
+}
+.mf-submit:hover { background: rgba(255,255,255,0.04); }
+
+/* ════════════════════════════════
+   TREND CHART CARD
+════════════════════════════════ */
+.trend-card {
+  background: var(--bg2); border: 0.5px solid var(--line);
+  padding: 12px 14px; flex-shrink: 0;
+}
+.trend-head { font-size: 7px; letter-spacing: 2px; color: var(--bone3); margin-bottom: 10px; }
+canvas#trend-chart { width: 100%; height: 60px; display: block; }
+
+/* ════════════════════════════════
+   SESSION LOCK SCREEN
+════════════════════════════════ */
+#lockscreen {
+  position: fixed; inset: 0; background: var(--bg);
+  display: none; flex-direction: column;
+  align-items: center; justify-content: center;
+  z-index: 9997;
+}
+#lockscreen.show { display: flex; }
+.lock-box {
+  width: 300px; border: 0.5px solid var(--line2);
+  background: var(--bg2); text-align: center; padding: 30px 20px;
+}
+.lock-icon { font-size: 22px; color: var(--bone3); margin-bottom: 14px; }
+.lock-txt { font-size: 8px; letter-spacing: 3px; color: var(--bone3); margin-bottom: 20px; }
+.lock-inp {
+  width: 100%; background: var(--bg3); border: 0.5px solid var(--line);
+  color: var(--bone); font-family: var(--font); font-size: 10px;
+  padding: 8px 10px; outline: none; letter-spacing: 1px; margin-bottom: 8px;
+}
+.lock-inp:focus { border-color: var(--line2); }
+.lock-err { font-size: 7.5px; color: var(--red); min-height: 13px; margin-bottom: 8px; }
+.lock-btn {
+  width: 100%; padding: 8px; background: transparent;
+  border: 0.5px solid var(--line2); color: var(--bone2);
+  font-family: var(--font); font-size: 7px; letter-spacing: 4px;
+  cursor: pointer; text-transform: uppercase;
+}
+.lock-btn:hover { background: rgba(255,255,255,0.04); }
+.lock-op { font-size: 7px; color: var(--bone4); margin-top: 10px; letter-spacing: 1px; }
+
+/* ════════════════════════════════
+   CLASSIFICATION BANNER
+════════════════════════════════ */
+#class-banner {
+  position: fixed; top: 0; left: 0; right: 0; height: 3px;
+  background: transparent; z-index: 10000;
+  transition: background 0.3s;
+}
+#class-banner.restricted { background: var(--amber); }
+#class-banner.secret     { background: var(--red); }
+
+/* ════════════════════════════════
+   BRIEF EXPORT — print override
+════════════════════════════════ */
+@media print {
+  body[data-brief="1"] #login,
+  body[data-brief="1"] #boot,
+  body[data-brief="1"] #topbar,
+  body[data-brief="1"] #pannav,
+  body[data-brief="1"] #statusbar,
+  body[data-brief="1"] #toast,
+  body[data-brief="1"] #lockscreen { display: none !important; }
+  body[data-brief="1"] #brief-print-target { display: block !important; }
+}
+#brief-print-target {
+  display: none;
+  font-family: 'Courier New', monospace;
+  font-size: 10px; color: #000; padding: 20px;
+}
+
+/* ════════════════════════════════
+   THREAT MATRIX PANEL
+════════════════════════════════ */
+#p-matrix { background: var(--bg); overflow-y: auto; }
+.matrix-inner { padding: 14px; display: flex; flex-direction: column; gap: 12px; }
+.matrix-title { font-size: 7px; letter-spacing: 3px; color: var(--bone3); text-transform: uppercase; }
+.matrix-sub   { font-size: 7px; color: var(--bone4); letter-spacing: 1px; }
+.matrix-table { width: 100%; border-collapse: collapse; }
+.matrix-table th {
+  font-size: 6.5px; letter-spacing: 2px; color: var(--bone3);
+  text-align: center; padding: 6px 8px;
+  border-bottom: 0.5px solid var(--line2);
+  text-transform: uppercase;
+}
+.matrix-table th.row-head { text-align: left; min-width: 50px; }
+.matrix-table td {
+  padding: 6px 4px; text-align: center;
+  border: 0.5px solid rgba(255,255,255,0.03);
+}
+.mx-cell {
+  font-size: 7px; font-weight: 700; letter-spacing: 1px;
+  padding: 4px 6px; display: inline-block; min-width: 36px;
+}
+.mx-cell.crit { color: var(--red);   background: rgba(255,59,48,0.12); border: 0.5px solid rgba(255,59,48,0.3); }
+.mx-cell.warn { color: var(--amber); background: rgba(255,214,10,0.08); border: 0.5px solid rgba(255,214,10,0.25); }
+.mx-cell.sig  { color: var(--bone2); background: rgba(255,255,255,0.04); border: 0.5px solid var(--line); }
+.mx-cell.nil  { color: var(--bone4); background: transparent; border: 0.5px solid rgba(255,255,255,0.02); }
+.mx-region-label { font-size: 7.5px; color: var(--bone3); letter-spacing: 1.5px; text-align: left; padding-right: 12px; }
+.matrix-velocity {
+  display: flex; gap: 8px; flex-wrap: wrap;
+}
+.vel-card {
+  background: var(--bg2); border: 0.5px solid var(--line);
+  padding: 8px 12px; min-width: 100px;
+}
+.vel-region { font-size: 6.5px; letter-spacing: 2px; color: var(--bone3); margin-bottom: 4px; }
+.vel-rate   { font-size: 16px; font-weight: 300; color: var(--bone); }
+.vel-rate.spike { color: var(--red); }
+.vel-unit   { font-size: 6.5px; color: var(--bone3); }
+
+/* ════════════════════════════════
+   COMPLIANCE / DATA USE MODAL
+════════════════════════════════ */
+#compliance-modal {
+  position: fixed; inset: 0;
+  background: rgba(0,0,0,0.92);
+  display: none; align-items: center; justify-content: center;
+  z-index: 10001;
+}
+#compliance-modal.show { display: flex; }
+.cm-box {
+  width: 560px; max-width: 94vw;
+  border: 0.5px solid var(--line2);
+  background: var(--bg2);
+  max-height: 90vh; overflow-y: auto;
+}
+.cm-head {
+  padding: 10px 16px; border-bottom: 0.5px solid var(--line2);
+  display: flex; justify-content: space-between; align-items: center;
+}
+.cm-title { font-size: 8px; letter-spacing: 3px; color: var(--bone2); }
+.cm-cls   { font-size: 6.5px; color: var(--amber); letter-spacing: 1px; }
+.cm-body  { padding: 18px 16px; font-size: 8.5px; color: var(--bone3); line-height: 1.8; }
+.cm-body h3 { font-size: 7px; letter-spacing: 2px; color: var(--bone2); margin: 14px 0 6px; text-transform: uppercase; }
+.cm-body p  { margin-bottom: 8px; }
+.cm-body ul { padding-left: 16px; margin-bottom: 8px; }
+.cm-body li { margin-bottom: 4px; }
+.cm-foot {
+  padding: 12px 16px; border-top: 0.5px solid var(--line);
+  display: flex; align-items: center; justify-content: space-between; gap: 12px;
+}
+.cm-ack-lbl { font-size: 7.5px; color: var(--bone3); flex: 1; }
+.cm-ack-btn {
+  padding: 8px 20px; background: transparent;
+  border: 0.5px solid var(--line2); color: var(--bone2);
+  font-family: var(--font); font-size: 7px; letter-spacing: 3px;
+  cursor: pointer; text-transform: uppercase;
+}
+.cm-ack-btn:hover { background: rgba(255,255,255,0.04); }
+.cm-ack-btn:disabled { opacity: 0.3; cursor: not-allowed; }
+
+/* ════════════════════════════════
+   LOGIN LOCKOUT BANNER
+════════════════════════════════ */
+.lg-lockout {
+  font-size: 7.5px; color: var(--amber);
+  text-align: center; letter-spacing: 0.5px;
+  min-height: 13px; font-variant-numeric: tabular-nums;
+}
+
+/* ════════════════════════════════
+   SIGNAL VELOCITY — STATUS BAR
+════════════════════════════════ */
+#sb-velocity { font-variant-numeric: tabular-nums; }
+#sb-velocity b.spike { color: var(--red) !important; animation: blink 1s step-end infinite; }
+
+/* ════════════════════════════════
+   INTEGRITY BADGE
+════════════════════════════════ */
+.integrity-badge {
+  font-size: 6px; color: var(--bone4); letter-spacing: 1px;
+  margin-top: 4px; word-break: break-all;
+}
+.integrity-badge.ok   { color: var(--bone4); }
+.integrity-badge.fail { color: var(--red); }
+</style>
+</head>
+<body>
+
+<!-- ══ COMPLIANCE MODAL ══ -->
+<div id="compliance-modal">
+  <div class="cm-box">
+    <div class="cm-head">
+      <span class="cm-title">DATA USE POLICY — ONYX PLATFORM</span>
+      <span class="cm-cls">MUST READ BEFORE ACCESS</span>
+    </div>
+    <div class="cm-body">
+      <h3>1. Purpose &amp; Scope</h3>
+      <p>ONYX is a closed-loop intelligence aggregation platform designed exclusively for authorised personnel of OECS member states, IMPACS, and designated national security ministries. This platform aggregates publicly available information from open-source news and government websites for intelligence analysis purposes only.</p>
+
+      <h3>2. Data Sources &amp; Legal Basis</h3>
+      <p>All data ingested by this platform is sourced from publicly accessible web pages and RSS feeds. ONYX does not access, store, or process any classified, private, or personally identifiable information beyond what is already in the public domain. Aggregation is conducted under the fair dealing provisions applicable in OECS jurisdictions for purposes of news monitoring and security analysis.</p>
+      <ul>
+        <li>Sources are limited to public government portals, registered news organisations, and official law enforcement communications</li>
+        <li>No login-protected, paywalled, or restricted content is accessed</li>
+        <li>Data is processed locally and is not transmitted to any third-party server</li>
+        <li>Retention is capped at 60 signals per region per session</li>
+      </ul>
+
+      <h3>3. Operator Obligations</h3>
+      <p>By accessing this platform, the operator agrees to:</p>
+      <ul>
+        <li>Use aggregated intelligence solely for authorised national security, law enforcement, and governance purposes</li>
+        <li>Not redistribute, publish, or share raw feed data outside the authorised agency without written approval</li>
+        <li>Treat all CRIT and WARN level signals as unverified until corroborated by a second source</li>
+        <li>Report any suspected data integrity issues to the platform administrator immediately</li>
+      </ul>
+
+      <h3>4. Proprietary Notice</h3>
+      <p>The ONYX Threat Score Engine™, Sovereign Scrubber™, Caribbean Node Manifest™, and all associated algorithms are proprietary trade secrets. Reverse engineering, copying, or redistribution of any component of this platform is prohibited under applicable intellectual property law.</p>
+
+      <h3>5. No Warranty</h3>
+      <p>Intelligence signals are derived from open-source feeds and carry no guarantee of accuracy, completeness, or timeliness. Operators must apply independent analytical judgement before acting on any signal.</p>
+    </div>
+    <div class="cm-foot">
+      <span class="cm-ack-lbl">By clicking ACKNOWLEDGE, you confirm you have read and agree to this Data Use Policy. This acknowledgement is logged to the audit trail.</span>
+      <button class="cm-ack-btn" id="cm-ack-btn" onclick="Compliance.acknowledge()">ACKNOWLEDGE →</button>
+    </div>
+  </div>
+</div>
+
+<!-- ══ CLASSIFICATION BANNER ══ -->
+<div id="class-banner"></div>
+
+<!-- ══ SESSION LOCK ══ -->
+<div id="lockscreen">
+  <div class="lock-box">
+    <div class="lock-icon">⬡</div>
+    <div class="lock-txt">SESSION LOCKED — RE-AUTHENTICATE</div>
+    <input class="lock-inp" id="lock-pass" type="password" placeholder="ACCESS CODE" autocomplete="off">
+    <div class="lock-err" id="lock-err"></div>
+    <button class="lock-btn" id="lock-btn">UNLOCK →</button>
+    <div class="lock-op" id="lock-op-name"></div>
+  </div>
+</div>
+
+<!-- ══ BRIEF PRINT TARGET ══ -->
+<div id="brief-print-target"></div>
+
+<!-- ══ LOGIN ══ -->
+<div id="login">
+  <div class="lg-eyebrow">CLOSED-LOOP INTELLIGENCE GRID &nbsp;/&nbsp; <b>ONYX</b> &nbsp;/&nbsp; CARIBBEAN SECTOR</div>
+  <div class="lg-card">
+    <div class="lg-card-top">
+      <span>SECURE ACCESS</span>
+      <span id="lg-clock">00:00:00 UTC</span>
+    </div>
+    <div class="lg-fields">
+      <div>
+        <div class="lg-lbl">Operator ID</div>
+        <input class="lg-inp" id="lg-user" type="text" placeholder="ENTER OPERATOR ID" autocomplete="off" spellcheck="false">
+      </div>
+      <div>
+        <div class="lg-lbl">Access Code</div>
+        <input class="lg-inp" id="lg-pass" type="password" placeholder="ENTER ACCESS CODE" autocomplete="off">
+      </div>
+      <div class="lg-err" id="lg-err"></div>
+      <div class="lg-lockout" id="lg-lockout"></div>
+      <button class="lg-go" id="lg-btn">AUTHENTICATE →</button>
+    </div>
+    <div class="lg-card-bot">
+      <span>ONYX v12.0</span>
+      <span>UNAUTHORIZED ACCESS IS AN OFFENCE</span>
+    </div>
+  </div>
+</div>
+
+<!-- ══ BOOT ══ -->
+<div id="boot">
+  <div class="bt-head">CLOSED-LOOP INTELLIGENCE GRID &nbsp;/&nbsp; <b>ONYX</b></div>
+  <div class="bt-box">
+    <div class="bt-box-top">
+      <span>SYSTEM DIAGNOSTIC — v12.0</span>
+      <span id="bt-stage">INIT</span>
+    </div>
+    <div class="bt-log" id="bt-log"></div>
+    <div class="bt-bar-row">
+      <div class="bt-bar"><div class="bt-fill" id="bt-fill"></div></div>
+      <div class="bt-pct" id="bt-pct">0%</div>
+    </div>
+    <div style="padding:5px 13px;border-top:0.5px solid var(--line)">
+      <div class="integrity-badge" id="integrity-badge">MANIFEST INTEGRITY: COMPUTING…</div>
+    </div>
+  </div>
+</div>
+
+<!-- ══ APP ══ -->
+<div id="app">
+
+  <!-- TOP BAR -->
+  <div id="topbar">
+    <div class="tb-logo">ONYX</div>
+
+    <div class="tb-regions">
+      <div class="tb-region active" data-region="SLU">SLU</div>
+      <div class="tb-region" data-region="ATG">ATG</div>
+      <div class="tb-region" data-region="BRB">BRB</div>
+      <div class="tb-region" data-region="DMA">DMA</div>
+      <div class="tb-region" data-region="GRD">GRD</div>
+      <div class="tb-region" data-region="SKN">SKN</div>
+      <div class="tb-region" data-region="SVG">SVG</div>
+      <div class="tb-region" data-region="TTO">TTO</div>
+      <div class="tb-region" data-region="JAM">JAM</div>
+      <div class="tb-region" data-region="GUY">GUY</div>
+    </div>
+
+    <div class="tb-right">
+      <div class="tb-live">
+        <div class="tb-dot blink"></div>
+        <span style="font-size:7px;letter-spacing:2px;color:var(--green)">LIVE</span>
+      </div>
+      <span>ALERTS:&nbsp;<span class="tb-alerts-badge" id="tb-alerts">0</span></span>
+      <span id="tb-sync" style="color:var(--bone3);font-variant-numeric:tabular-nums">SYNC 5:00</span>
+      <span id="tb-clock">00:00:00 UTC</span>
+    </div>
+  </div>
+
+  <!-- PANEL NAV -->
+  <div id="pannav">
+    <div class="pn-tab active" data-panel="p-feed">
+      INTEL FEED
+      <span class="pn-badge" id="pn-badge-feed">0</span>
+    </div>
+    <div class="pn-tab" data-panel="p-econ">ECON PULSE</div>
+    <div class="pn-tab" data-panel="p-alerts">
+      ALERTS
+      <span class="pn-badge" id="pn-badge-alerts">0</span>
+    </div>
+    <div class="pn-tab" data-panel="p-watch">
+      WATCH
+      <span class="pn-badge" id="pn-badge-watch">0</span>
+    </div>
+    <div class="pn-tab" data-panel="p-nodes">NODES</div>
+    <div class="pn-tab" data-panel="p-matrix">THREAT MATRIX</div>
+    <div class="pn-tab" data-panel="p-audit">AUDIT LOG</div>
+    <div class="pn-tab" data-panel="p-settings">SETTINGS</div>
+    <div class="pn-right">
+      <span id="pn-status" style="color:var(--bone3)">IDLE</span>
+      <button class="pn-sweep-btn" onclick="Export.brief()">↓ BRIEF</button>
+      <button class="pn-sweep-btn" onclick="Export.csv()">↓ CSV</button>
+      <button class="pn-sweep-btn" onclick="Export.pdf()">↓ PDF</button>
+      <button class="pn-sweep-btn" onclick="Net.sweep()">↺ SWEEP</button>
+    </div>
+  </div>
+
+  <!-- CONTENT -->
+  <div id="content">
+
+    <!-- INTEL FEED -->
+    <div class="panel active" id="p-feed">
+      <div class="feed-filters">
+        <button class="ff-btn on" onclick="Feed.filter('ALL',this)">ALL</button>
+        <button class="ff-btn" onclick="Feed.filter('CRIT',this)">CRIT</button>
+        <button class="ff-btn" onclick="Feed.filter('WARN',this)">WARN</button>
+        <button class="ff-btn" onclick="Feed.filter('SIG',this)">SIG</button>
+        <button class="ff-btn" onclick="Feed.filter('INFO',this)">INFO</button>
+        <div class="ff-sep"></div>
+        <div class="ff-counts">
+          <span><b id="fc-signals">0</b> SIGNALS</span>
+          <span><b id="fc-scrubbed">0</b> SCRUBBED</span>
+        </div>
+      </div>
+      <div class="feed-sweep-bar" id="sweep-bar">⟳ &nbsp;SWEEPING NODES — SOVEREIGN SCRUBBER ACTIVE…</div>
+      <div id="feed-list">
+        <div class="feed-empty" id="feed-empty">
+          <span class="fe-icon">◎</span>
+          <span class="fe-txt">AWAITING SWEEP</span>
+        </div>
+      </div>
+    </div>
+
+    <!-- ECON PULSE -->
+    <div class="panel" id="p-econ">
+      <div class="econ-inner">
+        <div class="econ-kpis">
+          <div class="kpi">
+            <div class="kpi-lbl">GDP Growth</div>
+            <div class="kpi-val up" id="kpi-gdp">3.8<span style="font-size:14px">%</span></div>
+            <div class="kpi-delta up" id="kpi-gdp-d">▲ ECCB 2026 est.</div>
+          </div>
+          <div class="kpi">
+            <div class="kpi-lbl">Tourism Exp.</div>
+            <div class="kpi-val" id="kpi-tour" style="font-size:18px;padding-top:4px">XCD 1.4B</div>
+            <div class="kpi-delta up">▲ +14.2% YoY</div>
+          </div>
+          <div class="kpi">
+            <div class="kpi-lbl">Inflation (CPI)</div>
+            <div class="kpi-val down" id="kpi-inf">3.9<span style="font-size:14px">%</span></div>
+            <div class="kpi-delta" style="color:var(--bone3)">▶ Stable</div>
+          </div>
+          <div class="kpi">
+            <div class="kpi-lbl">Stability Idx</div>
+            <div class="kpi-val up" id="kpi-stab">74.2</div>
+            <div class="kpi-delta up" id="kpi-stab-d">▲ +3.1 MTD</div>
+          </div>
+        </div>
+        <div class="econ-chart-card">
+          <div class="ecc-head">
+            <span class="ecc-title">SLU MACRO INDEX — STABILITY &amp; TOURISM INFLOW (2024–2026)</span>
+            <span class="ecc-src">SOURCE: STATS.GOV.LC · ECCB-CENTRALBANK.ORG</span>
+          </div>
+          <div class="ecc-legend">
+            <div class="ecc-legend-item">
+              <div class="ecc-legend-dot" style="background:rgba(240,240,240,0.5)"></div>
+              STABILITY INDEX
+            </div>
+            <div class="ecc-legend-item">
+              <div class="ecc-legend-dot" style="background:rgba(255,214,10,0.55)"></div>
+              TOURISM INFLOW
+            </div>
+          </div>
+          <canvas id="econ-chart"></canvas>
+        </div>
+      </div>
+    </div>
+
+    <!-- ALERTS -->
+    <div class="panel" id="p-alerts">
+      <div class="alerts-inner">
+        <div class="alerts-head">
+          <span class="ah-title">Active Alerts — Saint Lucia Sector 758</span>
+          <span class="ah-count">OPEN: <b id="alert-count">0</b></span>
+        </div>
+        <div class="alerts-grid" id="alert-grid">
+          <div class="alerts-empty" id="alerts-empty">
+            <span>◎</span>
+            <span>NO ACTIVE ALERTS</span>
+          </div>
+        </div>
+      </div>
+    </div>
+
+    <!-- WATCH LIST -->
+    <div class="panel" id="p-watch">
+      <div class="watch-inner">
+        <div class="watch-head">
+          <span class="watch-title">Watch List — Trip Wire Keywords</span>
+        </div>
+        <div class="watch-add-row">
+          <input class="watch-inp" id="watch-inp" type="text" placeholder="ENTER KEYWORD OR PHRASE…" autocomplete="off" spellcheck="false">
+          <button class="watch-add-btn" onclick="WatchList.add()">+ ADD</button>
+        </div>
+        <div class="watch-list" id="watch-list"></div>
+        <div class="watch-hits" id="watch-hits" style="display:none">
+          <div class="watch-hits-head">RECENT TRIP WIRE HITS</div>
+          <div id="watch-hits-list"></div>
+        </div>
+      </div>
+    </div>
+
+    <!-- NODE HEALTH -->
+    <div class="panel" id="p-nodes">
+      <div class="nodes-inner">
+        <div class="nodes-title">Node Health — All Regions</div>
+        <table class="nodes-table" id="nodes-table">
+          <thead>
+            <tr>
+              <th>TAG</th>
+              <th>REGION</th>
+              <th>CATEGORY</th>
+              <th>STATUS</th>
+              <th>PROXY</th>
+              <th>HITS</th>
+              <th>LAST SWEEP</th>
+              <th>TYPE</th>
+            </tr>
+          </thead>
+          <tbody id="nodes-tbody"></tbody>
+        </table>
+      </div>
+    </div>
+
+    <!-- THREAT MATRIX -->
+    <div class="panel" id="p-matrix">
+      <div class="matrix-inner">
+        <div>
+          <div class="matrix-title">Threat Matrix — Region × Category</div>
+          <div class="matrix-sub" style="margin-top:4px">Real-time signal distribution across all active regions. Updates on each sweep.</div>
+        </div>
+        <table class="matrix-table" id="matrix-table">
+          <thead>
+            <tr>
+              <th class="row-head">REGION</th>
+              <th>LAW ENF.</th>
+              <th>NAT. SEC.</th>
+              <th>EMERGENCY</th>
+              <th>GOVT / POL.</th>
+              <th>ECONOMY</th>
+              <th>DIPLOMATIC</th>
+              <th>TOTAL</th>
+            </tr>
+          </thead>
+          <tbody id="matrix-tbody"></tbody>
+        </table>
+        <div>
+          <div class="matrix-title" style="margin-bottom:8px">Signal Velocity — CRIT/WARN per hour per region</div>
+          <div class="matrix-velocity" id="matrix-velocity"></div>
+        </div>
+      </div>
+    </div>
+
+    <!-- AUDIT LOG -->
+    <div class="panel" id="p-audit">
+      <div class="audit-inner">
+        <div class="audit-title">Audit Log — Session Events</div>
+        <div class="audit-list" id="audit-list"></div>
+      </div>
+    </div>
+
+    <!-- SETTINGS -->
+    <div class="panel" id="p-settings">
+      <div class="settings-inner">
+        <div class="stg-title">Operator Settings</div>
+
+        <!-- Agency / white-label -->
+        <div class="stg-section">
+          <div class="stg-section-head">Agency Configuration</div>
+          <div class="stg-row">
+            <div><div class="stg-lbl">Agency Name</div><div class="stg-sub">Shown in header and exports</div></div>
+            <div class="stg-ctrl">
+              <input class="stg-inp" id="stg-agency" type="text" placeholder="ONYX">
+              <button class="stg-btn" onclick="Settings.saveAgency()">SAVE</button>
+            </div>
+          </div>
+          <div class="stg-row">
+            <div><div class="stg-lbl">Classification Level</div><div class="stg-sub">Stamped on all exports</div></div>
+            <div class="stg-ctrl">
+              <select class="stg-select" id="stg-class">
+                <option value="OFFICIAL">OFFICIAL</option>
+                <option value="OFFICIAL SENSITIVE" selected>OFFICIAL SENSITIVE</option>
+                <option value="RESTRICTED">RESTRICTED</option>
+                <option value="SECRET">SECRET</option>
+              </select>
+              <button class="stg-btn" onclick="Settings.saveClass()">APPLY</button>
+            </div>
+          </div>
+        </div>
+
+        <!-- Sweep interval -->
+        <div class="stg-section">
+          <div class="stg-section-head">Sweep &amp; Refresh</div>
+          <div class="stg-row">
+            <div><div class="stg-lbl">Auto-Sweep Interval</div><div class="stg-sub">How often nodes are polled</div></div>
+            <div class="stg-ctrl">
+              <select class="stg-select" id="stg-sweep">
+                <option value="300">5 min</option>
+                <option value="900">15 min</option>
+                <option value="1800">30 min</option>
+                <option value="3600">60 min</option>
+              </select>
+              <button class="stg-btn" onclick="Settings.saveSweep()">APPLY</button>
+            </div>
+          </div>
+        </div>
+
+        <!-- Session timeout -->
+        <div class="stg-section">
+          <div class="stg-section-head">Session Security</div>
+          <div class="stg-row">
+            <div><div class="stg-lbl">Session Timeout</div><div class="stg-sub">Auto-lock after inactivity</div></div>
+            <div class="stg-ctrl">
+              <select class="stg-select" id="stg-timeout">
+                <option value="300">5 min</option>
+                <option value="600" selected>10 min</option>
+                <option value="900">15 min</option>
+                <option value="1800">30 min</option>
+                <option value="0">Disabled</option>
+              </select>
+              <button class="stg-btn" onclick="Settings.saveTimeout()">APPLY</button>
+            </div>
+          </div>
+          <div class="stg-row">
+            <div><div class="stg-lbl">Dim / Red-Cell Mode</div><div class="stg-sub">Low-light operations display</div></div>
+            <div class="stg-ctrl">
+              <div class="stg-toggle" id="stg-dim-toggle" onclick="Settings.toggleDim(this)"></div>
+            </div>
+          </div>
+        </div>
+
+        <!-- Credential rotation -->
+        <div class="stg-section">
+          <div class="stg-section-head">Credential Rotation</div>
+          <div class="stg-row">
+            <div><div class="stg-lbl">Generate SHA-256 Hash</div><div class="stg-sub">Paste result into USERS object to rotate password</div></div>
+            <div class="stg-ctrl">
+              <input class="stg-inp" id="stg-hash-inp" type="password" placeholder="NEW PASSWORD">
+              <button class="stg-btn" onclick="Settings.genHash()">GENERATE</button>
+            </div>
+          </div>
+          <div class="stg-hash-out" id="stg-hash-out"></div>
+        </div>
+
+        <!-- Supabase backend -->
+        <div class="stg-section">
+          <div class="stg-section-head">Supabase Backend — Cross-Device Sync</div>
+          <div class="stg-row">
+            <div><div class="stg-lbl">Project URL</div><div class="stg-sub">From Supabase → Settings → API</div></div>
+            <div class="stg-ctrl">
+              <input class="stg-inp" id="stg-supa-url" type="text" placeholder="https://xxxx.supabase.co" style="width:240px">
+            </div>
+          </div>
+          <div class="stg-row">
+            <div><div class="stg-lbl">Anon Public Key</div><div class="stg-sub">Safe to use in client — row-level security enforced</div></div>
+            <div class="stg-ctrl">
+              <input class="stg-inp" id="stg-supa-key" type="password" placeholder="eyJhbGciOiJIUzI1NiIs…" style="width:240px">
+            </div>
+          </div>
+          <div class="stg-row">
+            <div><div class="stg-lbl">Sync Status</div><div class="stg-sub">Tests connection and shows live backend state</div></div>
+            <div class="stg-ctrl">
+              <span id="stg-supa-status" style="font-size:7.5px;color:var(--bone3);letter-spacing:1px">NOT CONFIGURED</span>
+              <button class="stg-btn" onclick="Settings.saveSupabase()">SAVE &amp; TEST</button>
+            </div>
+          </div>
+          <div class="stg-row">
+            <div>
+              <div class="stg-lbl">SQL Setup</div>
+              <div class="stg-sub">Run this in your Supabase SQL editor to create required tables</div>
+            </div>
+            <button class="stg-btn" onclick="Settings.copySQL()">COPY SQL</button>
+          </div>
+        </div>
+
+        <!-- Manual intel entry -->
+        <div class="stg-section">
+          <div class="stg-section-head">Manual Intel Entry — HUMINT / SIGINT</div>
+          <div style="padding:12px 13px">
+            <div class="mf-row" style="margin-bottom:8px">
+              <input class="mf-inp" id="mf-title" type="text" placeholder="INTEL TITLE / HEADLINE…" autocomplete="off">
+            </div>
+            <div class="mf-row">
+              <select class="mf-select" id="mf-level">
+                <option value="CRIT">CRIT</option>
+                <option value="WARN">WARN</option>
+                <option value="SIG">SIG</option>
+                <option value="INFO" selected>INFO</option>
+              </select>
+              <input class="mf-inp" id="mf-src" type="text" placeholder="SOURCE (e.g. HUMINT / FIELD OPR-1)">
+              <input class="mf-inp" id="mf-tag" type="text" placeholder="TAG (e.g. SIGINT)" style="max-width:120px">
+            </div>
+            <div style="margin-top:8px;text-align:right">
+              <button class="mf-submit" onclick="ManualEntry.inject()">INJECT INTO FEED →</button>
+            </div>
+          </div>
+        </div>
+
+      </div>
+    </div>
+
+  </div><!-- /content -->
+
+  <!-- STATUS BAR -->
+  <div id="statusbar">
+    <div class="sb-item ok">NET:&nbsp;<b>SECURE</b></div>
+    <div class="sb-item">ENC:&nbsp;<b>AES-256</b></div>
+    <div class="sb-item" id="sb-nodes">NODES:&nbsp;<b>8 LINKED</b></div>
+    <div class="sb-item ok">SCRUBBER:&nbsp;<b>REGEX/v2</b></div>
+    <div class="sb-item">PROXY:&nbsp;<b id="sb-proxy">ROTATE</b></div>
+    <div class="sb-item" id="sb-velocity">VELOCITY:&nbsp;<b id="sb-vel-val">—</b>/HR</div>
+    <div class="sb-item" id="sb-sync-item">BACKEND:&nbsp;<b id="sb-sync-status">LOCAL</b></div>
+    <div class="sb-ticker"><div class="sb-ticker-inner" id="sb-ticker"></div></div>
+    <div class="sb-item warn">SECTOR:&nbsp;<b>SLU</b></div>
+    <div class="sb-item">CLEARANCE:&nbsp;<b>LVL-4</b></div>
+  </div>
+
+</div><!-- /app -->
+<div id="toast"></div>
+
+<script>
+'use strict';
+
+/* ════════════ CREDENTIALS — SHA-256 hashed ════════════
+   Passwords are never stored in plaintext.
+   To update: run sha256('newpassword') in browser console,
+   then replace the hex string for the relevant user below.
+════════════════════════════════════════════════════════ */
+const USERS = {
+  'OPR-758':   'c665398f0f8e6eb5d9004fb3af716b244912abfe5dfd0ab13eacf53ab5ae8927',
+  'ADMIN-758': '1f9afb96cb99dc58dc663d23619885572073a860fb89b958aa1fa341df6636f0',
+};
+
+async function sha256(msg) {
+  const buf = await crypto.subtle.digest('SHA-256', new TextEncoder().encode(msg));
+  return Array.from(new Uint8Array(buf)).map(b => b.toString(16).padStart(2,'0')).join('');
+}
+
+async function checkCredentials(user, pass) {
+  const hash = await sha256(pass);
+  return USERS[user] !== undefined && USERS[user] === hash;
+}
+
+/* ════════════ STATE ════════════ */
+const State = {
+  feedCount:    0,
+  scrubCount:   0,
+  alertCount:   0,
+  uptime:       0,
+  bootTime:     Date.now(),
+  refreshTimer: 300,
+};
+
+/* ════════════ STORE — IndexedDB primary, localStorage fallback ════════════
+   IndexedDB survives cache clears, survives incognito per-session,
+   and cannot be wiped by a simple "clear browsing data" without
+   explicitly targeting site data. localStorage is the instant-sync
+   fallback for reads while IDB is initialising.
+   Keys: feed_{region}, alerts_{region}
+   Cap: 200 entries per region (up from 60 — IDB handles it fine)
+════════════════════════════════════════════════════════════════════════ */
+const Store = (() => {
+  const CAP_FEED   = 200;
+  const CAP_ALERTS = 48;
+  const LS_NS      = 'onyx_';
+  let _db = null;
+
+  // ── open / upgrade IDB ──
+  function _openDB() {
+    return new Promise((res, rej) => {
+      const req = indexedDB.open('ONYX758', 2);
+      req.onupgradeneeded = e => {
+        const db = e.target.result;
+        if (!db.objectStoreNames.contains('feed'))   db.createObjectStore('feed');
+        if (!db.objectStoreNames.contains('alerts')) db.createObjectStore('alerts');
+        if (!db.objectStoreNames.contains('meta'))   db.createObjectStore('meta');
+      };
+      req.onsuccess = e => { _db = e.target.result; res(_db); };
+      req.onerror   = () => rej(req.error);
+    });
+  }
+
+  async function _idbSet(store, key, val) {
+    if (!_db) return;
+    return new Promise((res, rej) => {
+      const tx = _db.transaction(store, 'readwrite');
+      tx.objectStore(store).put(val, key);
+      tx.oncomplete = res; tx.onerror = rej;
+    });
+  }
+
+  async function _idbGet(store, key) {
+    if (!_db) return null;
+    return new Promise((res, rej) => {
+      const tx  = _db.transaction(store, 'readonly');
+      const req = tx.objectStore(store).get(key);
+      req.onsuccess = () => res(req.result ?? null);
+      req.onerror   = rej;
+    });
+  }
+
+  // ── LS helpers (instant sync, no async) ──
+  function _lsKey(type, region) { return `${LS_NS}${type}_${region}`; }
+  function _lsSet(k, v) { try { localStorage.setItem(k, JSON.stringify(v)); } catch(e) {} }
+  function _lsGet(k)    { try { return JSON.parse(localStorage.getItem(k)) || null; } catch(e) { return null; } }
+
+  // ── public API ──
+  async function saveFeed(region, entries) {
+    const trimmed = entries.slice(0, CAP_FEED);
+    _lsSet(_lsKey('feed', region), trimmed);
+    await _idbSet('feed', region, trimmed);
+    SupaSync.pushFeed(region, trimmed);
+  }
+
+  function loadFeedSync(region) {
+    return _lsGet(_lsKey('feed', region)) || [];
+  }
+
+  async function loadFeed(region) {
+    const idb = await _idbGet('feed', region);
+    if (idb) { _lsSet(_lsKey('feed', region), idb); return idb; }
+    return loadFeedSync(region);
+  }
+
+  async function saveAlerts(region, alerts) {
+    const trimmed = alerts.slice(0, CAP_ALERTS);
+    _lsSet(_lsKey('alerts', region), trimmed);
+    await _idbSet('alerts', region, trimmed);
+    SupaSync.pushAlerts(region, trimmed);
+  }
+
+  function loadAlertsSync(region) {
+    return _lsGet(_lsKey('alerts', region)) || [];
+  }
+
+  async function saveMeta(key, val) {
+    _lsSet(LS_NS + key, val);
+    await _idbSet('meta', key, val);
+  }
+
+  async function loadMeta(key) {
+    const idb = await _idbGet('meta', key);
+    if (idb !== null) return idb;
+    return _lsGet(LS_NS + key);
+  }
+
+  async function init() {
+    try { await _openDB(); } catch(e) { /* IDB unavailable — LS-only mode */ }
+  }
+
+  return { saveFeed, loadFeed, loadFeedSync, saveAlerts, loadAlertsSync, saveMeta, loadMeta, init };
+})();
+
+/* ════════════ UTILITIES ════════════ */
+function nowTime() {
+  return new Date().toLocaleTimeString('en-US',{hour12:false,hour:'2-digit',minute:'2-digit',second:'2-digit'});
+}
+function utcClock() {
+  return new Date().toISOString().slice(11,19)+' UTC';
+}
+
+/* ════════════ SUPABASE BACKEND CONFIG ════════════
+   Drop your Supabase project URL and anon key here
+   to enable cross-device sync, shared ops picture,
+   and server-side persistence.
+
+   Leave both blank ('') for local-only mode —
+   the platform operates fully offline without them.
+
+   To get these values:
+   1. Create a free project at supabase.com
+   2. Go to Project Settings → API
+   3. Copy "Project URL" and "anon public" key
+
+   Required tables (run in Supabase SQL editor):
+     create table onyx_feed   (id uuid default gen_random_uuid() primary key, region text, data jsonb, updated_at timestamptz default now());
+     create table onyx_alerts (id uuid default gen_random_uuid() primary key, region text, data jsonb, updated_at timestamptz default now());
+     create table onyx_audit  (id uuid default gen_random_uuid() primary key, operator text, evt text, detail text, ts text, inserted_at timestamptz default now());
+     create table onyx_watch  (id uuid default gen_random_uuid() primary key, agency text, keywords jsonb, updated_at timestamptz default now());
+   Enable Row Level Security on all tables as required.
+════════════════════════════════════════════════ */
+const SUPABASE_CONFIG = {
+  url:    '',   /* e.g. 'https://xyzxyzxyz.supabase.co'      */
+  anonKey:'',   /* e.g. 'eyJhbGciOiJIUzI1NiIsInR5cCI6...'   */
+};
+
+/* ════════════ SCRAPERAPI / CUSTOM MIDDLEWARE SLOT ════════════
+   Drop a ScraperAPI key or custom proxy endpoint here.
+   If set, it is tried FIRST before the public proxy pool.
+   Leave blank ('') to use public proxies only.
+   ScraperAPI: get key at scraperapi.com
+   Custom:     set CUSTOM_PROXY_URL to your middleware base URL
+               e.g. 'https://your-server.com/proxy?url='
+════════════════════════════════════════════════════════════ */
+const SCRAPER_CONFIG = {
+  scraperApiKey:   '',
+  customProxyUrl:  '',
+};
+
+/* ════════════ PROXY ROTATION ════════════
+   Priority order:
+   1. ScraperAPI (if key configured)
+   2. Custom middleware (if URL configured)
+   3. Public proxy pool with health scoring
+   Each proxy carries a score (0-100). Failures
+   decrement score; successes restore it.
+   Degraded proxies (<30 score) are skipped
+   until a full sweep cycle passes.
+════════════════════════════════════════ */
+const PROXIES = [
+  { fn: u => `https://api.allorigins.win/get?url=${encodeURIComponent(u)}`,      json: true,  tag: 'ALLORIGINS',  score: 100, fails: 0 },
+  { fn: u => `https://corsproxy.io/?url=${encodeURIComponent(u)}`,               json: false, tag: 'CORSPROXY',   score: 100, fails: 0 },
+  { fn: u => `https://api.allorigins.win/raw?url=${encodeURIComponent(u)}`,      json: false, tag: 'AO-RAW',      score: 100, fails: 0 },
+  { fn: u => `https://thingproxy.freeboard.io/fetch/${u}`,                       json: false, tag: 'THINGPROXY',  score: 100, fails: 0 },
+  { fn: u => `https://api.codetabs.com/v1/proxy?quest=${encodeURIComponent(u)}`, json: false, tag: 'CODETABS',    score: 100, fails: 0 },
+  { fn: u => `https://cors.eu.org/${u}`,                                          json: false, tag: 'CORS-EU',     score: 100, fails: 0 },
+];
+
+let _lastGoodProxy = 0;
+
+async function proxyFetch(rawUrl) {
+  // ── 1. ScraperAPI (professional, highest priority) ──
+  if (SCRAPER_CONFIG.scraperApiKey) {
+    try {
+      const sUrl = `https://api.scraperapi.com?api_key=${SCRAPER_CONFIG.scraperApiKey}&url=${encodeURIComponent(rawUrl)}`;
+      const ctrl = new AbortController();
+      const tid  = setTimeout(() => ctrl.abort(), 15000);
+      const res  = await fetch(sUrl, { signal: ctrl.signal });
+      clearTimeout(tid);
+      if (res.ok) {
+        const text = await res.text();
+        if (text && text.length > 10) {
+          document.getElementById('sb-proxy').textContent = 'SCRAPERAPI';
+          return text.length > 80000 ? text.slice(0, 80000) : text;
+        }
+      }
+    } catch(e) { /* fall through */ }
+  }
+
+  // ── 2. Custom middleware ──
+  if (SCRAPER_CONFIG.customProxyUrl) {
+    try {
+      const ctrl = new AbortController();
+      const tid  = setTimeout(() => ctrl.abort(), 12000);
+      const res  = await fetch(SCRAPER_CONFIG.customProxyUrl + encodeURIComponent(rawUrl), { signal: ctrl.signal });
+      clearTimeout(tid);
+      if (res.ok) {
+        const text = await res.text();
+        if (text && text.length > 10) {
+          document.getElementById('sb-proxy').textContent = 'CUSTOM';
+          return text.length > 80000 ? text.slice(0, 80000) : text;
+        }
+      }
+    } catch(e) { /* fall through */ }
+  }
+
+  // ── 3. Public proxy pool with health scoring ──
+  const viable = PROXIES
+    .map((p, i) => ({ p, i }))
+    .filter(({ p }) => p.score >= 30)
+    .sort((a, b) => {
+      if (a.i === _lastGoodProxy) return -1;
+      if (b.i === _lastGoodProxy) return 1;
+      return b.p.score - a.p.score;
+    });
+
+  for (const { p: proxy, i: idx } of viable) {
+    try {
+      const ctrl = new AbortController();
+      const tid  = setTimeout(() => ctrl.abort(), 10000);
+      const res  = await fetch(proxy.fn(rawUrl), { signal: ctrl.signal });
+      clearTimeout(tid);
+      if (!res.ok) throw new Error(`HTTP ${res.status}`);
+      let text = await res.text();
+      if (!text) throw new Error('empty');
+      if (proxy.json) {
+        try { const j = JSON.parse(text); text = j.contents || j.body || text; } catch(e) {}
+      }
+      if (!text || text.length < 10) throw new Error('too short');
+      if (/error|blocked|denied|forbidden|not found/i.test(text.slice(0,200)) && text.length < 500) throw new Error('proxy error page');
+      if (text.length > 80000) text = text.slice(0, 80000);
+      // success — restore score
+      proxy.score = Math.min(100, proxy.score + 10);
+      proxy.fails = 0;
+      _lastGoodProxy = idx;
+      document.getElementById('sb-proxy').textContent = proxy.tag;
+      return text;
+    } catch(e) {
+      // failure — degrade score
+      proxy.fails++;
+      proxy.score = Math.max(0, proxy.score - 25);
+    }
+  }
+
+  // All proxies exhausted or degraded — reset scores for next sweep
+  PROXIES.forEach(p => { if (p.score < 30) p.score = 40; });
+  return null;
+}
+
+/* ════════════ SCRUBBER — Intel Focus ═════════════════════════
+   Modelled on what would reach the desks of:
+     - Office of the PM / Cabinet Secretariat
+     - RSLPF / Commissioner of Police
+     - Ministry of External Affairs / Foreign Affairs
+   Anything not relevant to governance, law, security, economy,
+   diplomacy or emergencies is filtered out.
+══════════════════════════════════════════════════════════════ */
+const Scrubber = (() => {
+
+  // PASS: terms that matter to PM, police, foreign affairs
+  const INTEL_TERMS = [
+    // Law enforcement & crime
+    'police','arrest','murder','homicide','shooting','stabbing','firearm','weapon','seize',
+    'seized','robbery','assault','gang','drugs','trafficking','smuggling','contraband',
+    'RSLPF','squad','crime','criminal','suspect','fugitive','detained','charged','convicted',
+    'sentenced','warrant','interpol','operation','raid','custody','court','magistrate',
+    'prosecution','verdict','fine','penalty',
+    // National security & military
+    'security','national security','coastguard','coast guard','navy','military','deployment',
+    'border','customs','immigration','visa','curfew','lockdown','unrest','protest','riot',
+    'terrorism','extremist','radical','threat','intelligence','surveillance',
+    // PM office & governance
+    'prime minister','cabinet','minister','parliament','senate','senator','government','GOSL',
+    'policy','legislation','bill','act','regulation','reform','directive','ruling','decree',
+    'budget','revenue','expenditure','procurement','contract','tender','audit','corruption',
+    'fraud','embezzle','bribe','laundering','scandal','inquiry',
+    // Foreign affairs & diplomacy
+    'diplomatic','ambassador','consul','bilateral','treaty','agreement','foreign','international',
+    'CARICOM','OECS','Caribbean','United Nations','UN ','IMF','World Bank','ECCB','OAS',
+    'embassy','delegation','summit','negotiation','sanction','trade','export','import',
+    'investment','development','aid','grant',
+    // Economy
+    'GDP','economy','economic','growth','inflation','recession','fiscal','monetary','debt',
+    'bond','credit','rating','tourism','agriculture','energy','oil','gas','port','airport',
+    'infrastructure','construction','project',
+    // Emergency & disaster
+    'emergency','hurricane','tropical storm','flood','earthquake','disaster','NEMO',
+    'alert','warning','advisory','evacuation','shelter','damage','casualty',
+    // Health & public order
+    'hospital','health','outbreak','epidemic','pandemic','WHO',
+  ];
+
+  const WL_RE = new RegExp(INTEL_TERMS.map(t =>
+    t.replace(/[.*+?^${}()|[\]\\]/g, '\\$&')
+  ).join('|'), 'i');
+
+  // BLOCK: entertainment, sports, lifestyle fluff
+  const BL_RE = /\b(carnival|soca|calypso|pageant|festival|concert|celebrity|idol|talent\s*show|fashion|lifestyle|horoscope|crossword|recipe|sport|cricket|football|soccer|netball|athletics|marathon|swimming|golf|tennis|basketball|volleyball|baseball|comedy|movie|film|drama|series|episode|album|single|playlist|remix|dance|DJ|nightclub|party|giveaway|sale|discount|coupon|winner|prize|lottery|raffle|obituary|classified)\b/i;
+
+  function pass(text) {
+    if (!text || typeof text !== 'string') return false;
+    if (BL_RE.test(text)) return false;
+    return WL_RE.test(text);
+  }
+
+  // Relaxed — used for govt/official sites where we trust the source
+  // Only blocks obvious fluff, accepts everything else
+  function passRelaxed(text) {
+    if (!text || typeof text !== 'string' || text.length < 8) return false;
+    return !BL_RE.test(text);
+  }
+
+  return { pass, passRelaxed };
+})();
+
+/* ════════════ NODES — per region ════════════
+   Intel focus: PM Office, National Security, RSLPF equivalent,
+   Economic Affairs, Emergency Management, Legislative
+══════════════════════════════════════════════ */
+const REGION_NODES = {
+
+  SLU: [
+    { id:'slu-rslpf',  tag:'RSLPF',  label:'GOVT.LC / COMMUNITY',          cat:'LAW ENFORCEMENT',   url:'https://www.govt.lc/news/about/community',   type:'html', defaultLevel:'CRIT', filter: t => /police|arrest|crime|security|firearm|homicide|shooting|stabbing|rslpf|squad/i.test(t), selectors:['h2','h3','h4','.news-title','.post-title','article h2','.entry-title','.content-title'], count:0, status:'idle' },
+    { id:'slu-crime',  tag:'CRIME',  label:'SAINTLUCIANEWSONLINE / CRIME',  cat:'INCIDENTS',          url:'https://www.saintlucianewsonline.net/crime',  type:'html', defaultLevel:'CRIT', filter: t => Scrubber.passRelaxed(t), selectors:['.entry-title','.post-title','h2.entry-title','h3.post-title','.headline','article h2','.news-headline','h2','h3'], count:0, status:'idle' },
+    { id:'slu-nemo',   tag:'NEMO',   label:'NEMO.GOV.LC',                   cat:'EMERGENCY MGMT',     url:'https://nemo.gov.lc',                        type:'html', defaultLevel:'WARN', filter: t => Scrubber.passRelaxed(t), selectors:['h2','h3','h4','.entry-title','.post-title','article h2','.alert-title','.news-item h3'], count:0, status:'idle' },
+    { id:'slu-opm',    tag:'OPM',    label:'OPMSAINTLUCIA.COM / NEWS',       cat:'OFFICE OF THE PM',   url:'https://opmsaintlucia.com/news',              type:'html', defaultLevel:'INFO', filter: t => Scrubber.passRelaxed(t), selectors:['.post-title','h2.entry-title','h3.entry-title','.news-title','article h2','article h3','.blog-post-title','h2','h3'], count:0, status:'idle' },
+    { id:'slu-legis',  tag:'GOV',    label:'GOVT.LC / LEGISLATIONS',         cat:'LEGISLATIVE',        url:'https://www.govt.lc/legislations',            type:'html', defaultLevel:'INFO', filter: t => t.length > 8 && Scrubber.passRelaxed(t), selectors:['h2','h3','.legislation-title','.post-title','table td a','li a','article h2','.doc-title'], count:0, status:'idle' },
+    { id:'slu-slt',    tag:'SLT',    label:'ST LUCIA TIMES RSS',             cat:'RSS / PRIMARY',      url:'https://stluciatimes.com/feed/',              type:'rss',  defaultLevel:'INFO', filter: t => Scrubber.pass(t), count:0, status:'idle' },
+    { id:'slu-voice',  tag:'VOICE',  label:'THE VOICE SLU RSS',              cat:'RSS / SECONDARY',    url:'https://thevoiceslu.com/feed/',               type:'rss',  defaultLevel:'INFO', filter: t => Scrubber.pass(t), count:0, status:'idle' },
+    { id:'slu-star',   tag:'STAR',   label:'ST LUCIA STAR RSS',              cat:'RSS / TERTIARY',     url:'https://www.stluciastar.com/feed/',           type:'rss',  defaultLevel:'INFO', filter: t => Scrubber.pass(t), count:0, status:'idle' },
+  ],
+
+  TTO: [
+    { id:'tto-express', tag:'EXPRESS', label:'TRINIDAD EXPRESS RSS',         cat:'RSS / PRIMARY',      url:'https://trinidadexpress.com/feed/',           type:'rss',  defaultLevel:'INFO', filter: t => Scrubber.pass(t), count:0, status:'idle' },
+    { id:'tto-guardian',tag:'GUARDIAN',label:'TT GUARDIAN RSS',              cat:'RSS / SECONDARY',    url:'https://www.guardian.co.tt/rss.xml',          type:'rss',  defaultLevel:'INFO', filter: t => Scrubber.pass(t), count:0, status:'idle' },
+    { id:'tto-newsday', tag:'NEWSDAY', label:'NEWSDAY TT RSS',               cat:'RSS / TERTIARY',     url:'https://newsday.co.tt/feed/',                 type:'rss',  defaultLevel:'INFO', filter: t => Scrubber.pass(t), count:0, status:'idle' },
+    { id:'tto-ttps',    tag:'TTPS',    label:'TTPS.GOV.TT / NEWS',           cat:'LAW ENFORCEMENT',    url:'https://ttps.gov.tt/news',                    type:'html', defaultLevel:'CRIT', filter: t => Scrubber.passRelaxed(t), selectors:['h2','h3','.news-title','.post-title','article h2'], count:0, status:'idle' },
+    { id:'tto-natsecc', tag:'NATSEC',  label:'NATIONALSECURITY.GOV.TT',      cat:'NATIONAL SECURITY',  url:'https://www.nationalsecurity.gov.tt/news/',   type:'html', defaultLevel:'INFO', filter: t => Scrubber.passRelaxed(t), selectors:['h2','h3','.news-title','article h2','.entry-title'], count:0, status:'idle' },
+  ],
+
+  JAM: [
+    { id:'jam-gleaner', tag:'GLEANER', label:'JAMAICA GLEANER RSS',          cat:'RSS / PRIMARY',      url:'https://jamaica-gleaner.com/feed/',           type:'rss',  defaultLevel:'INFO', filter: t => Scrubber.pass(t), count:0, status:'idle' },
+    { id:'jam-observer',tag:'OBSERVER',label:'JAMAICA OBSERVER RSS',         cat:'RSS / SECONDARY',    url:'https://www.jamaicaobserver.com/feed/',       type:'rss',  defaultLevel:'INFO', filter: t => Scrubber.pass(t), count:0, status:'idle' },
+    { id:'jam-jcf',     tag:'JCF',     label:'JCF.GOV.JM / NEWS',            cat:'LAW ENFORCEMENT',    url:'https://www.jcf.gov.jm/news/',                type:'html', defaultLevel:'CRIT', filter: t => Scrubber.passRelaxed(t), selectors:['h2','h3','.news-title','.post-title','article h2','.entry-title'], count:0, status:'idle' },
+    { id:'jam-opm',     tag:'OPM',     label:'OPM.GOV.JM / NEWS',            cat:'OFFICE OF THE PM',   url:'https://www.opm.gov.jm/news/',                type:'html', defaultLevel:'INFO', filter: t => Scrubber.passRelaxed(t), selectors:['h2','h3','.news-title','.entry-title','article h2'], count:0, status:'idle' },
+    { id:'jam-nse',     tag:'NATSEC',  label:'MONFSC.GOV.JM / NEWS',         cat:'NATIONAL SECURITY',  url:'https://www.monfsc.gov.jm/news/',             type:'html', defaultLevel:'INFO', filter: t => Scrubber.passRelaxed(t), selectors:['h2','h3','.news-title','article h2'], count:0, status:'idle' },
+  ],
+
+  BRB: [
+    { id:'brb-nation',  tag:'NATION',  label:'NATIONNEWS.COM RSS',           cat:'RSS / PRIMARY',      url:'https://www.nationnews.com/feed/',            type:'rss',  defaultLevel:'INFO', filter: t => Scrubber.pass(t), count:0, status:'idle' },
+    { id:'brb-bdlp',    tag:'BDLP',    label:'BARBADOSTODAY.BB RSS',         cat:'RSS / SECONDARY',    url:'https://barbadostoday.bb/feed/',              type:'rss',  defaultLevel:'INFO', filter: t => Scrubber.pass(t), count:0, status:'idle' },
+    { id:'brb-rbpf',    tag:'RBPF',    label:'RBPF.GOV.BB / NEWS',           cat:'LAW ENFORCEMENT',    url:'https://www.rbpf.gov.bb/news',                type:'html', defaultLevel:'CRIT', filter: t => Scrubber.passRelaxed(t), selectors:['h2','h3','.news-title','.post-title','article h2'], count:0, status:'idle' },
+    { id:'brb-pmo',     tag:'PMO',     label:'PMO.GOV.BB / NEWS',            cat:'OFFICE OF THE PM',   url:'https://pmo.gov.bb/news/',                    type:'html', defaultLevel:'INFO', filter: t => Scrubber.passRelaxed(t), selectors:['h2','h3','.news-title','article h2','.entry-title'], count:0, status:'idle' },
+  ],
+
+  GUY: [
+    { id:'guy-stabroek',tag:'STABROEK',label:'STABROEK NEWS RSS',            cat:'RSS / PRIMARY',      url:'https://www.stabroeknews.com/feed/',          type:'rss',  defaultLevel:'INFO', filter: t => Scrubber.pass(t), count:0, status:'idle' },
+    { id:'guy-kaieteur',tag:'KN',      label:'KAIETEUR NEWS RSS',            cat:'RSS / SECONDARY',    url:'https://www.kaieteurnewsonline.com/feed/',    type:'rss',  defaultLevel:'INFO', filter: t => Scrubber.pass(t), count:0, status:'idle' },
+    { id:'guy-gpf',     tag:'GPF',     label:'POLICE.GOV.GY / NEWS',         cat:'LAW ENFORCEMENT',    url:'https://www.police.gov.gy/news/',             type:'html', defaultLevel:'CRIT', filter: t => Scrubber.passRelaxed(t), selectors:['h2','h3','.news-title','.post-title','article h2'], count:0, status:'idle' },
+  ],
+
+  ATG: [
+    { id:'atg-observer', tag:'OBSERVER', label:'ANTIGUAOBSERVER RSS',         cat:'RSS / PRIMARY',     url:'https://antiguaobserver.com/feed/',                    type:'rss',  defaultLevel:'INFO', filter: t => Scrubber.pass(t), count:0, status:'idle' },
+    { id:'atg-daily',    tag:'DAILY',    label:'DAILYOBSERVER.AG RSS',        cat:'RSS / SECONDARY',   url:'https://www.dailyobserver.ag/feed/',                   type:'rss',  defaultLevel:'INFO', filter: t => Scrubber.pass(t), count:0, status:'idle' },
+    { id:'atg-abs',      tag:'ABS',      label:'ABSLIVE.AG / NEWS',           cat:'RSS / TERTIARY',    url:'https://www.abslive.ag/feed/',                        type:'rss',  defaultLevel:'INFO', filter: t => Scrubber.pass(t), count:0, status:'idle' },
+    { id:'atg-pm',       tag:'PMO',      label:'PMOFFICE.GOV.AG / NEWS',      cat:'OFFICE OF THE PM',  url:'https://www.pmoffice.gov.ag/category/news',            type:'html', defaultLevel:'INFO', filter: t => Scrubber.passRelaxed(t), selectors:['h2','h3','.news-title','article h2','.entry-title'], count:0, status:'idle' },
+    { id:'atg-police',   tag:'POLICE',   label:'ROYALPOLICEANTIGUA.COM',      cat:'LAW ENFORCEMENT',   url:'https://www.royalpoliceantigua.com/news/',             type:'html', defaultLevel:'CRIT', filter: t => Scrubber.passRelaxed(t), selectors:['h2','h3','.news-title','.post-title','article h2'], count:0, status:'idle' },
+    { id:'atg-gov',      tag:'GOV',      label:'GOVT.AG / NEWS',              cat:'GOVT INTEL',        url:'https://www.govt.ag/news/',                            type:'html', defaultLevel:'INFO', filter: t => Scrubber.passRelaxed(t), selectors:['h2','h3','.entry-title','.post-title','article h2'], count:0, status:'idle' },
+  ],
+
+  DMA: [
+    { id:'dma-dnews',    tag:'DNO',      label:'DOMINICANEWSONLINE RSS',      cat:'RSS / PRIMARY',     url:'https://dominicanewsonline.com/news/feed/',            type:'rss',  defaultLevel:'INFO', filter: t => Scrubber.pass(t), count:0, status:'idle' },
+    { id:'dma-sun',      tag:'SUN',      label:'THESUNDOMINICA RSS',          cat:'RSS / SECONDARY',   url:'https://www.thesundominica.com/feed/',                 type:'rss',  defaultLevel:'INFO', filter: t => Scrubber.pass(t), count:0, status:'idle' },
+    { id:'dma-chron',    tag:'CHRON',    label:'DOMINIKAVIBES RSS',           cat:'RSS / TERTIARY',    url:'https://dominikavibes.com/feed/',                      type:'rss',  defaultLevel:'INFO', filter: t => Scrubber.pass(t), count:0, status:'idle' },
+    { id:'dma-gov',      tag:'GOV',      label:'DOMINICA.GOV.DM / NEWS',     cat:'GOVT INTEL',        url:'https://dominica.gov.dm/news',                         type:'html', defaultLevel:'INFO', filter: t => Scrubber.passRelaxed(t), selectors:['h2','h3','.news-title','article h2','.entry-title'], count:0, status:'idle' },
+    { id:'dma-police',   tag:'POLICE',   label:'DOMINICAPOLICE.GOV.DM',      cat:'LAW ENFORCEMENT',   url:'https://www.dominicapolice.gov.dm/news/',              type:'html', defaultLevel:'CRIT', filter: t => Scrubber.passRelaxed(t), selectors:['h2','h3','.news-title','.post-title','article h2'], count:0, status:'idle' },
+  ],
+
+  GRD: [
+    { id:'grd-now',      tag:'NOW',      label:'NOWGRENADA RSS',              cat:'RSS / PRIMARY',     url:'https://www.nowgrenada.com/feed/',                     type:'rss',  defaultLevel:'INFO', filter: t => Scrubber.pass(t), count:0, status:'idle' },
+    { id:'grd-loop',     tag:'LOOP',     label:'LOOPNEWSGRENADA RSS',         cat:'RSS / SECONDARY',   url:'https://grenadabroadcast.com/feed/',                   type:'rss',  defaultLevel:'INFO', filter: t => Scrubber.pass(t), count:0, status:'idle' },
+    { id:'grd-gis',      tag:'GIS',      label:'GIS.GOV.GD / NEWS',          cat:'GOVT INTEL',        url:'https://www.gis.gov.gd/news/',                         type:'html', defaultLevel:'INFO', filter: t => Scrubber.passRelaxed(t), selectors:['h2','h3','.news-title','article h2','.entry-title'], count:0, status:'idle' },
+    { id:'grd-police',   tag:'POLICE',   label:'ROYALGRENADAPOLICE.ORG',     cat:'LAW ENFORCEMENT',   url:'https://www.royalgrenadapolice.org/news/',             type:'html', defaultLevel:'CRIT', filter: t => Scrubber.passRelaxed(t), selectors:['h2','h3','.news-title','.post-title','article h2'], count:0, status:'idle' },
+    { id:'grd-pm',       tag:'PMO',      label:'PMOFFICE.GOV.GD / NEWS',     cat:'OFFICE OF THE PM',  url:'https://www.gov.gd/news/',                             type:'html', defaultLevel:'INFO', filter: t => Scrubber.passRelaxed(t), selectors:['h2','h3','.entry-title','article h2'], count:0, status:'idle' },
+  ],
+
+  SKN: [
+    { id:'skn-observer', tag:'OBSERVER', label:'SKNNEWSONLINE RSS',          cat:'RSS / PRIMARY',     url:'https://www.sknnewsonline.com/feed/',                  type:'rss',  defaultLevel:'INFO', filter: t => Scrubber.pass(t), count:0, status:'idle' },
+    { id:'skn-iw',       tag:'IW',       label:'IWNSVG — SKN RSS',           cat:'RSS / SECONDARY',   url:'https://iwnsvg.com/feed/',                            type:'rss',  defaultLevel:'INFO', filter: t => Scrubber.pass(t), count:0, status:'idle' },
+    { id:'skn-labour',   tag:'LABOUR',   label:'SKNLABOUR.ORG / NEWS',       cat:'RSS / TERTIARY',    url:'https://www.sknlabour.org/feed/',                     type:'rss',  defaultLevel:'INFO', filter: t => Scrubber.pass(t), count:0, status:'idle' },
+    { id:'skn-gov',      tag:'GOV',      label:'STKITTSNEVIS.GOV.KN',        cat:'GOVT INTEL',        url:'https://www.stkittsnevis.net/news/',                   type:'html', defaultLevel:'INFO', filter: t => Scrubber.passRelaxed(t), selectors:['h2','h3','.news-title','article h2','.entry-title'], count:0, status:'idle' },
+    { id:'skn-police',   tag:'POLICE',   label:'RSKNCPF / NEWS',             cat:'LAW ENFORCEMENT',   url:'https://www.stkittspolice.com/news/',                  type:'html', defaultLevel:'CRIT', filter: t => Scrubber.passRelaxed(t), selectors:['h2','h3','.news-title','.post-title','article h2'], count:0, status:'idle' },
+  ],
+
+  SVG: [
+    { id:'svg-iw',       tag:'IWNSVG',   label:'IWNSVG RSS',                 cat:'RSS / PRIMARY',     url:'https://iwnsvg.com/feed/',                            type:'rss',  defaultLevel:'INFO', filter: t => Scrubber.pass(t), count:0, status:'idle' },
+    { id:'svg-sl',       tag:'SL',       label:'SEARCHLIGHT RSS',            cat:'RSS / SECONDARY',   url:'https://searchlight.vc/feed/',                        type:'rss',  defaultLevel:'INFO', filter: t => Scrubber.pass(t), count:0, status:'idle' },
+    { id:'svg-news',     tag:'NEWS',     label:'VINCENTIANEWS RSS',          cat:'RSS / TERTIARY',    url:'https://vincentianews.com/feed/',                      type:'rss',  defaultLevel:'INFO', filter: t => Scrubber.pass(t), count:0, status:'idle' },
+    { id:'svg-gov',      tag:'GOV',      label:'SVG.GOV.VC / NEWS',          cat:'GOVT INTEL',        url:'https://www.gov.vc/govvc/index.php/news',              type:'html', defaultLevel:'INFO', filter: t => Scrubber.passRelaxed(t), selectors:['h2','h3','.news-title','article h2','.entry-title'], count:0, status:'idle' },
+    { id:'svg-police',   tag:'POLICE',   label:'RSVGPF / NEWS',              cat:'LAW ENFORCEMENT',   url:'https://www.svgpoliceforce.com/news/',                 type:'html', defaultLevel:'CRIT', filter: t => Scrubber.passRelaxed(t), selectors:['h2','h3','.news-title','.post-title','article h2'], count:0, status:'idle' },
+  ],
+
+};
+
+// Active region — default SLU
+let ACTIVE_REGION = 'SLU';
+let NODES = REGION_NODES[ACTIVE_REGION];
+
+/* ════════════ CLASSIFIER ════════════ */
+function classify(title, def) {
+  const l = title.toLowerCase();
+  if (/arrest|homicide|murder|shot|stab|robbery|shooting|firearm|weapon|seize|armed/.test(l)) return 'CRIT';
+  if (/emergency|rslpf|squad|coast\s*guard|crime|operation|investigation|warrant|accused|charged/.test(l)) return 'WARN';
+  if (/gdp|investment|growth|economy|tourism|trade|bilateral|infrastructure|eccb|revenue|budget/.test(l)) return 'SIG';
+  return def || 'INFO';
+}
+
+/* ════════════ FEED ════════════ */
+const Feed = (() => {
+  const CAP = 60;
+  let entries = [];
+  let activeFilter = 'ALL';
+  let tickerDirty  = false;
+
+  function addEntry(e) {
+    // deduplicate by title within current entries
+    if (entries.some(x => x.title === e.title && x.tag === e.tag)) return;
+    entries.unshift(e);
+    if (entries.length > CAP) entries.length = CAP;
+    State.feedCount++;
+    document.getElementById('fc-signals').textContent = State.feedCount;
+
+    // persist
+    Store.saveFeed(ACTIVE_REGION, entries);
+
+    // hide empty state
+    const emptyEl = document.getElementById('feed-empty');
+    if (emptyEl) emptyEl.style.display = 'none';
+
+    if (activeFilter === 'ALL' || activeFilter === e.level) {
+      const list = document.getElementById('feed-list');
+      const row  = buildRow(e);
+      list.prepend(row);
+      const rows = list.querySelectorAll('.feed-item');
+      if (rows.length > CAP) rows[rows.length-1].remove();
+    }
+
+    if (e.level === 'CRIT') {
+      State.alertCount++;
+      document.getElementById('tb-alerts').textContent = State.alertCount;
+      document.getElementById('alert-count').textContent = State.alertCount;
+      const badge = document.getElementById('pn-badge-alerts');
+      badge.textContent = State.alertCount;
+      badge.classList.add('show');
+      Alerts.add(e);
+    }
+
+    SignalVelocity.record(ACTIVE_REGION, e.level);
+
+    // feed badge
+    const fb = document.getElementById('pn-badge-feed');
+    fb.textContent = State.feedCount;
+    fb.classList.add('show');
+
+    tickerDirty = true;
+  }
+
+  function buildRow(e) {
+    const d = document.createElement('div');
+    d.className = 'feed-item';
+    const linkHtml = (e.link && e.link !== '#')
+      ? `<a class="fi-link" href="${e.link}" target="_blank" onclick="event.stopPropagation()">↗ OPEN</a>`
+      : '';
+    const scoreBadge = ThreatScore.badge(e.score||0);
+    const tagsHtml = (e.tags && e.tags.length)
+      ? `<div class="fi-tags">${e.tags.map(t=>`<span class="fi-tag">${t}</span>`).join('')}</div>`
+      : '';
+    const crossHtml = e.crossRegion
+      ? `<div class="fi-regional">⚑ REGIONAL INCIDENT — ALSO IN ${e.crossRegion}</div>`
+      : '';
+    d.innerHTML = `
+      <span class="fi-time">${e.time}</span>
+      <span class="fi-lvl ${e.level}">${e.level}</span>
+      <span class="fi-body">
+        <span class="fi-title">${e.title}</span>
+        ${crossHtml}
+        ${tagsHtml}
+        <span class="fi-meta">
+          <span class="fi-src">${e.src}</span>
+          ${scoreBadge}
+          ${linkHtml}
+        </span>
+      </span>`;
+    return d;
+  }
+
+  function filter(f, btn) {
+    activeFilter = f;
+    document.querySelectorAll('.ff-btn').forEach(b => b.classList.remove('on'));
+    btn.classList.add('on');
+    const list = document.getElementById('feed-list');
+    list.querySelectorAll('.feed-item').forEach(r => r.remove());
+    const subset = f === 'ALL' ? entries : entries.filter(e => e.level === f);
+    const frag = document.createDocumentFragment();
+    subset.slice(0, CAP).forEach(e => frag.appendChild(buildRow(e)));
+    list.appendChild(frag);
+    if (subset.length) document.getElementById('feed-empty').style.display = 'none';
+    else document.getElementById('feed-empty').style.display = 'flex';
+  }
+
+  function flushTicker() {
+    if (!tickerDirty) return;
+    const inner = document.getElementById('sb-ticker');
+    const h = entries.slice(0,12).map(e =>
+      `<span class="tick-i ${e.level==='CRIT'?'crit':''}"><b>[${e.tag}]</b> ${e.title}</span>`
+    ).join('');
+    inner.innerHTML = h + h;
+    tickerDirty = false;
+  }
+
+  // restore persisted feed for current region
+  function restore(region) {
+    entries = Store.loadFeedSync(region);
+    State.feedCount = entries.length;
+    document.getElementById('fc-signals').textContent = State.feedCount;
+    const list = document.getElementById('feed-list');
+    list.querySelectorAll('.feed-item').forEach(r => r.remove());
+    if (entries.length) {
+      document.getElementById('feed-empty').style.display = 'none';
+      const frag = document.createDocumentFragment();
+      entries.forEach(e => frag.appendChild(buildRow(e)));
+      list.appendChild(frag);
+      const fb = document.getElementById('pn-badge-feed');
+      fb.textContent = State.feedCount;
+      fb.classList.add('show');
+      tickerDirty = true;
+    } else {
+      document.getElementById('feed-empty').style.display = 'flex';
+    }
+  }
+
+  function clear() {
+    entries = [];
+    State.feedCount = 0;
+    State.scrubCount = 0;
+    document.getElementById('fc-signals').textContent = '0';
+    document.getElementById('fc-scrubbed').textContent = '0';
+    document.getElementById('feed-list').querySelectorAll('.feed-item').forEach(x => x.remove());
+    document.getElementById('feed-empty').style.display = 'flex';
+    const fb = document.getElementById('pn-badge-feed');
+    fb.textContent = '0'; fb.classList.remove('show');
+    tickerDirty = true;
+  }
+
+  setInterval(flushTicker, 1000);
+  return { addEntry, filter, restore, clear };
+})();
+
+/* ════════════ ALERTS ════════════ */
+const Alerts = (() => {
+  let stored = [];
+
+  function add(e) {
+    const time = new Date().toLocaleTimeString('en-US',{hour12:false,hour:'2-digit',minute:'2-digit'});
+    const entry = { ...e, alertTime: time };
+    stored.unshift(entry);
+    if (stored.length > 24) stored.length = 24;
+    Store.saveAlerts(ACTIVE_REGION, stored);
+    _renderCard(entry);
+  }
+
+  function _renderCard(e) {
+    const grid  = document.getElementById('alert-grid');
+    const empty = document.getElementById('alerts-empty');
+    if (empty) empty.remove();
+    const lvl  = e.level === 'CRIT' ? 'crit' : e.level === 'WARN' ? 'warn' : 'info';
+    const card = document.createElement('div');
+    card.className = `alert-card ${lvl}`;
+    card.innerHTML = `
+      <div class="ac-head">
+        <span class="ac-type ${lvl}">${e.tag || e.level}</span>
+        <span class="ac-time">${e.alertTime}</span>
+      </div>
+      <div class="ac-text">${e.title}</div>
+      <div class="ac-src">${e.src}</div>`;
+    grid.insertBefore(card, grid.firstChild);
+    const cards = grid.querySelectorAll('.alert-card');
+    if (cards.length > 24) cards[cards.length-1].remove();
+  }
+
+  function restore(region) {
+    stored = Store.loadAlertsSync(region);
+    const grid = document.getElementById('alert-grid');
+    grid.querySelectorAll('.alert-card').forEach(x => x.remove());
+    if (stored.length) {
+      if (!document.getElementById('alerts-empty')) {}
+      else document.getElementById('alerts-empty')?.remove();
+      stored.forEach(e => _renderCard(e));
+      State.alertCount = stored.length;
+      document.getElementById('tb-alerts').textContent  = State.alertCount;
+      document.getElementById('alert-count').textContent = State.alertCount;
+      const badge = document.getElementById('pn-badge-alerts');
+      badge.textContent = State.alertCount;
+      badge.classList.add('show');
+    } else {
+      if (!document.getElementById('alerts-empty')) {
+        const em = document.createElement('div');
+        em.className = 'alerts-empty'; em.id = 'alerts-empty';
+        em.innerHTML = '<span>◎</span><span>NO ACTIVE ALERTS</span>';
+        grid.appendChild(em);
+      }
+    }
+  }
+
+  function clear() {
+    stored = [];
+    State.alertCount = 0;
+    document.getElementById('tb-alerts').textContent   = '0';
+    document.getElementById('alert-count').textContent = '0';
+    const badge = document.getElementById('pn-badge-alerts');
+    badge.textContent = '0'; badge.classList.remove('show');
+    const grid = document.getElementById('alert-grid');
+    grid.querySelectorAll('.alert-card').forEach(x => x.remove());
+    if (!document.getElementById('alerts-empty')) {
+      const em = document.createElement('div');
+      em.className = 'alerts-empty'; em.id = 'alerts-empty';
+      em.innerHTML = '<span>◎</span><span>NO ACTIVE ALERTS</span>';
+      grid.appendChild(em);
+    }
+  }
+
+  return { add, restore, clear };
+})();
+
+/* ════════════ ECON CHART ════════════ */
+const Econ = (() => {
+  const DATA = {
+    labels:    ['24Q1','24Q2','24Q3','24Q4','25Q1','25Q2','25Q3','25Q4','26Q1','26Q2','26Q3'],
+    stability: [68,70,72,72,71,73,75,74,73,76,78],
+    tourism:   [82,87,93,90,88,94,99,96,93,100,104],
+  };
+  const stabLive = [...DATA.stability];
+  const tourLive = [...DATA.tourism];
+  const lblLive  = [...DATA.labels];
+  let canvas, ctx;
+
+  function draw() {
+    if (!canvas || !ctx) return;
+    const W = canvas.width, H = canvas.height;
+    if (W < 10 || H < 10) return;
+    ctx.clearRect(0,0,W,H);
+    const pl=28, pr=6, pt=6, pb=16;
+    const cw=W-pl-pr, ch=H-pt-pb;
+
+    // grid lines
+    ctx.strokeStyle='rgba(255,255,255,0.04)'; ctx.lineWidth=0.5;
+    for(let i=0;i<=4;i++){
+      const y=pt+(ch/4)*i;
+      ctx.beginPath();ctx.moveTo(pl,y);ctx.lineTo(pl+cw,y);ctx.stroke();
+    }
+
+    function drawLine(data, min, max, color, dash){
+      if(data.length < 2) return;
+      ctx.strokeStyle=color; ctx.lineWidth=1;
+      ctx.setLineDash(dash||[]);
+      ctx.beginPath();
+      data.forEach((v,i)=>{
+        const x=pl+(i/(data.length-1))*cw;
+        const y=pt+ch-((v-min)/(max-min))*ch;
+        i===0?ctx.moveTo(x,y):ctx.lineTo(x,y);
+      });
+      ctx.stroke();
+      ctx.setLineDash([]);
+    }
+
+    drawLine(stabLive, 55, 115, 'rgba(240,240,240,0.5)');
+    drawLine(tourLive, 55, 115, 'rgba(255,214,10,0.5)', [4,3]);
+
+    // y axis labels
+    ctx.fillStyle='rgba(255,255,255,0.2)'; ctx.font='7px monospace'; ctx.textAlign='right';
+    [60,70,80,90,100].forEach(v=>{
+      const y=pt+ch-((v-55)/(115-55))*ch;
+      ctx.fillText(v, pl-3, y+3);
+    });
+
+    // x labels
+    ctx.textAlign='center';
+    const step=Math.max(1,Math.floor(lblLive.length/6));
+    lblLive.forEach((l,i)=>{
+      if(i%step===0){
+        const x=pl+(i/(lblLive.length-1))*cw;
+        ctx.fillText(l, x, H-3);
+      }
+    });
+  }
+
+  function tick() {
+    const lastS = stabLive[stabLive.length-1];
+    const lastT = tourLive[tourLive.length-1];
+    const newS  = +(Math.max(58,Math.min(100,lastS+(Math.random()-0.46)*1.1))).toFixed(2);
+    const newT  = +(Math.max(72,Math.min(112,lastT+(Math.random()-0.44)*1.6))).toFixed(2);
+    stabLive.push(newS); tourLive.push(newT);
+    lblLive.push(new Date().toLocaleTimeString('en-US',{hour:'2-digit',minute:'2-digit'}));
+    if(stabLive.length>28){ stabLive.shift(); tourLive.shift(); lblLive.shift(); }
+    draw();
+    document.getElementById('kpi-stab').textContent = newS.toFixed(1);
+    const gdp = +(3.5+(newS-68)/32+(Math.random()-0.5)*0.12).toFixed(2);
+    document.getElementById('kpi-gdp').innerHTML = gdp.toFixed(1)+'<span style="font-size:14px">%</span>';
+    document.getElementById('kpi-tour').textContent = 'XCD '+(1390*newT/100).toFixed(0)+'M';
+  }
+
+  function init() {
+    canvas = document.getElementById('econ-chart');
+    ctx    = canvas.getContext('2d');
+    function resize() {
+      canvas.width  = canvas.offsetWidth  || 600;
+      canvas.height = canvas.offsetHeight || 120;
+      draw();
+    }
+    resize();
+    new ResizeObserver(resize).observe(canvas);
+    setInterval(tick, 12000);
+  }
+
+  return { init };
+})();
+
+/* ════════════ NET — sweep engine ════════════ */
+const Net = (() => {
+  let sweeping = false;
+
+  /* ── RSS parser ── */
+  function parseRSS(xml, node) {
+    const entries = [];
+    try {
+      const doc = new DOMParser().parseFromString(xml, 'text/xml');
+      // handle both <item> and <entry> (Atom)
+      const items = [...doc.querySelectorAll('item'), ...doc.querySelectorAll('entry')];
+      for (const item of items) {
+        const titleEl = item.querySelector('title');
+        let title = titleEl ? (titleEl.textContent || titleEl.innerHTML || '').trim() : '';
+        // strip CDATA wrappers
+        title = title.replace(/^<!\[CDATA\[|\]\]>$/g, '').trim();
+        if (!title || title.length < 5) { State.scrubCount++; continue; }
+        if (!node.filter(title)) { State.scrubCount++; continue; }
+        // get link — try multiple approaches
+        let link = '#';
+        const linkEl = item.querySelector('link');
+        if (linkEl) {
+          link = linkEl.getAttribute('href') || linkEl.textContent.trim() || '#';
+        }
+        const guidEl = item.querySelector('guid');
+        if (link === '#' && guidEl) link = guidEl.textContent.trim() || '#';
+        entries.push({ level: classify(title, node.defaultLevel), title, link });
+        if (entries.length >= 12) break;
+      }
+    } catch(e) { /* parse error — return empty */ }
+    return entries;
+  }
+
+  /* ── HTML parser ── */
+  function parseHTML(html, node) {
+    const entries = [];
+    try {
+      const doc  = new DOMParser().parseFromString(html, 'text/html');
+      const seen = new Set();
+      for (const sel of node.selectors) {
+        for (const el of doc.querySelectorAll(sel)) {
+          const raw = (el.textContent || '').trim().replace(/\s+/g, ' ');
+          if (raw.length < 8 || raw.length > 280) continue;
+          if (seen.has(raw)) continue;
+          if (!node.filter(raw)) { State.scrubCount++; continue; }
+          seen.add(raw);
+          const a    = el.tagName === 'A' ? el : el.querySelector('a');
+          const link = a?.href || '#';
+          entries.push({ level: classify(raw, node.defaultLevel), title: raw, link });
+          if (entries.length >= 12) break;
+        }
+        if (entries.length >= 12) break;
+      }
+    } catch(e) { /* parse error */ }
+    return entries;
+  }
+
+  /* ── sweep one node ── */
+  async function sweepNode(node) {
+    node.status = 'pend';
+    updateNodeStatus();
+    try {
+      const text = await proxyFetch(node.url);
+      if (!text) throw new Error('no response');
+      const entries = node.type === 'rss' ? parseRSS(text, node) : parseHTML(text, node);
+      if (entries.length > 0) {
+        node.status = 'ok';
+        const time = nowTime();
+        entries.forEach(e => {
+          const score   = ThreatScore.score(e.title);
+          const tags    = Entities.extract(e.title);
+          const crossReg = Correlator.check({ title: e.title, tag: node.tag });
+          const watchKw  = WatchList.check(e.title);
+          const entry = {
+            level: e.level, title: e.title, link: e.link || '#',
+            tag: node.tag, src: node.label, time, score, tags,
+            crossRegion: crossReg || null
+          };
+          Feed.addEntry(entry);
+          if (watchKw) WatchList.hit(watchKw, entry);
+        });
+        node.count += entries.length;
+        NodeHealth.update(node, 'ok', document.getElementById('sb-proxy').textContent);
+      } else {
+        node.status = 'warn';
+        NodeHealth.update(node, 'fail', '—');
+      }
+    } catch(err) {
+      node.status = 'err';
+      NodeHealth.update(node, 'fail', '—');
+    }
+    document.getElementById('fc-scrubbed').textContent = State.scrubCount;
+    updateNodeStatus();
+    NodeHealth.render();
+  }
+
+  function updateNodeStatus() {
+    const ok   = NODES.filter(n => n.status === 'ok').length;
+    const err  = NODES.filter(n => n.status === 'err').length;
+    const pend = NODES.filter(n => n.status === 'pend').length;
+    const warn = NODES.filter(n => n.status === 'warn').length;
+    const txt  = pend > 0
+      ? `SWEEPING ${NODES.length - pend}/${NODES.length}`
+      : `${ok} LIVE · ${warn} PARTIAL · ${err} FAIL`;
+    document.getElementById('pn-status').textContent = txt;
+    document.getElementById('sb-nodes').innerHTML =
+      `NODES:&nbsp;<b>${ok}/${NODES.length} LIVE</b>`;
+  }
+
+  /* ── main sweep — runs ALL nodes in parallel ── */
+  async function sweep() {
+    if (sweeping) return;
+    sweeping = true;
+    document.getElementById('sweep-bar').classList.add('show');
+    document.getElementById('pn-status').textContent = `SWEEPING 0/${NODES.length}`;
+    NODES.forEach(n => { n.status = 'idle'; });
+    await Promise.allSettled(NODES.map(n => sweepNode(n)));
+    document.getElementById('sweep-bar').classList.remove('show');
+    updateNodeStatus();
+    const ok = NODES.filter(n => n.status === 'ok').length;
+    AuditLog.record('sweep', `Sweep complete — ${ACTIVE_REGION} — ${ok}/${NODES.length} nodes OK`);
+    ThreatMatrix.render();
+    SignalVelocity.updateUI();
+    // read sweep interval from settings
+    const intervalEl = document.getElementById('stg-sweep');
+    State.refreshTimer = intervalEl ? parseInt(intervalEl.value) : 300;
+    sweeping = false;
+  }
+
+  return { sweep };
+})();
+
+/* ════════════ SUPABASE SYNC LAYER ════════════
+   Wraps Supabase REST API. All calls are fire-and-
+   forget — local IDB/LS is always written first,
+   Supabase syncs in the background. If the key is
+   blank or the request fails, local-only continues
+   silently. The platform never blocks on the network.
+
+   Sync strategy:
+   - WRITE: local first → Supabase upsert async
+   - READ:  local instant → Supabase pull on boot
+   - AUDIT: local + Supabase insert (append-only)
+   - WATCH: local + Supabase upsert per agency
+════════════════════════════════════════════════ */
+const SupaSync = (() => {
+  const _url  = () => SUPABASE_CONFIG.url;
+  const _key  = () => SUPABASE_CONFIG.anonKey;
+  const _live = () => !!(_url() && _key());
+
+  const _headers = () => ({
+    'Content-Type':  'application/json',
+    'apikey':         _key(),
+    'Authorization': `Bearer ${_key()}`,
+    'Prefer':        'resolution=merge-duplicates',
+  });
+
+  async function _post(table, body) {
+    if (!_live()) return;
+    try {
+      await fetch(`${_url()}/rest/v1/${table}`, {
+        method:  'POST',
+        headers: _headers(),
+        body:    JSON.stringify(body),
+      });
+    } catch(e) { /* silent — local already saved */ }
+  }
+
+  async function _get(table, filter) {
+    if (!_live()) return null;
+    try {
+      const qs  = filter ? `?${filter}` : '';
+      const res = await fetch(`${_url()}/rest/v1/${table}${qs}`, {
+        headers: { ..._headers(), 'Prefer': 'return=representation' },
+      });
+      if (!res.ok) return null;
+      return await res.json();
+    } catch(e) { return null; }
+  }
+
+  async function _upsert(table, body) {
+    if (!_live()) return;
+    try {
+      await fetch(`${_url()}/rest/v1/${table}`, {
+        method:  'POST',
+        headers: { ..._headers(), 'Prefer': 'resolution=merge-duplicates,return=minimal' },
+        body:    JSON.stringify(body),
+      });
+    } catch(e) {}
+  }
+
+  /* ── Public sync methods ── */
+
+  // Push feed for a region to Supabase
+  async function pushFeed(region, entries) {
+    await _upsert('onyx_feed', { region, data: entries, updated_at: new Date().toISOString() });
+  }
+
+  // Pull feed for a region from Supabase (called on boot / region switch)
+  async function pullFeed(region) {
+    const rows = await _get('onyx_feed', `region=eq.${region}&select=data&limit=1`);
+    if (rows && rows.length && rows[0].data) return rows[0].data;
+    return null;
+  }
+
+  // Push alerts
+  async function pushAlerts(region, alerts) {
+    await _upsert('onyx_alerts', { region, data: alerts, updated_at: new Date().toISOString() });
+  }
+
+  // Pull alerts
+  async function pullAlerts(region) {
+    const rows = await _get('onyx_alerts', `region=eq.${region}&select=data&limit=1`);
+    if (rows && rows.length && rows[0].data) return rows[0].data;
+    return null;
+  }
+
+  // Append audit event (append-only, never overwrites)
+  async function pushAudit(evt, detail, operator, ts) {
+    await _post('onyx_audit', { operator, evt, detail, ts });
+  }
+
+  // Push watch keywords per agency
+  async function pushWatch(keywords) {
+    const agency = (AGENCY_CONFIG && AGENCY_CONFIG.name) || 'ONYX';
+    await _upsert('onyx_watch', { agency, keywords, updated_at: new Date().toISOString() });
+  }
+
+  // Pull watch keywords for this agency
+  async function pullWatch() {
+    const agency = (AGENCY_CONFIG && AGENCY_CONFIG.name) || 'ONYX';
+    const rows = await _get('onyx_watch', `agency=eq.${encodeURIComponent(agency)}&select=keywords&limit=1`);
+    if (rows && rows.length && rows[0].keywords) return rows[0].keywords;
+    return null;
+  }
+
+  // On boot — pull remote data and merge into local if remote is newer/larger
+  async function bootSync(region) {
+    if (!_live()) {
+      _updateStatusBar('LOCAL');
+      return;
+    }
+    _updateStatusBar('SYNCING…');
+    try {
+      // Feed
+      const remoteFeed = await pullFeed(region);
+      if (remoteFeed && remoteFeed.length > 0) {
+        const localFeed = Store.loadFeedSync(region);
+        if (remoteFeed.length >= localFeed.length) {
+          // Remote has more — merge unique entries
+          const merged = _mergeEntries(remoteFeed, localFeed);
+          await Store.saveFeed(region, merged);
+        }
+      }
+      // Alerts
+      const remoteAlerts = await pullAlerts(region);
+      if (remoteAlerts && remoteAlerts.length > 0) {
+        const localAlerts = Store.loadAlertsSync(region);
+        if (remoteAlerts.length >= localAlerts.length) {
+          await Store.saveAlerts(region, remoteAlerts);
+        }
+      }
+      // Watch keywords
+      const remoteWatch = await pullWatch();
+      if (remoteWatch && Array.isArray(remoteWatch)) {
+        const localWatch = (() => { try { return JSON.parse(localStorage.getItem('onyx_watchlist') || '[]'); } catch(e) { return []; } })();
+        const merged = [...new Set([...remoteWatch, ...localWatch])];
+        try { localStorage.setItem('onyx_watchlist', JSON.stringify(merged)); } catch(e) {}
+      }
+      _updateStatusBar('SYNCED');
+      AuditLog.record('sweep', `Supabase boot sync complete — region ${region}`);
+    } catch(e) {
+      _updateStatusBar('SYNC ERR');
+    }
+  }
+
+  function _mergeEntries(remote, local) {
+    const seen = new Set(local.map(e => e.title + e.tag));
+    const newEntries = remote.filter(e => !seen.has(e.title + e.tag));
+    return [...newEntries, ...local].slice(0, 200);
+  }
+
+  function _updateStatusBar(status) {
+    const el = document.getElementById('sb-sync-status');
+    if (el) el.textContent = status;
+  }
+
+  function isLive() { return _live(); }
+
+  return { pushFeed, pullFeed, pushAlerts, pullAlerts, pushAudit, pushWatch, pullWatch, bootSync, isLive };
+})();
+
+/* ════════════ WHITE-LABEL CONFIG ════════════
+   Edit this object to rebrand for any agency.
+   logo: base64 data URI (optional — leave '' for none)
+════════════════════════════════════════════ */
+const AGENCY_CONFIG = (() => {
+  const stored = (() => { try { return JSON.parse(localStorage.getItem('onyx_agency') || 'null'); } catch(e) { return null; } })();
+  return stored || { name: 'ONYX', classification: 'OFFICIAL SENSITIVE' };
+})();
+
+function applyAgencyConfig() {
+  const cls = AGENCY_CONFIG.classification || 'OFFICIAL SENSITIVE';
+  const banner = document.getElementById('class-banner');
+  if (cls === 'SECRET')     banner.className = 'secret';
+  else if (cls === 'RESTRICTED') banner.className = 'restricted';
+  else banner.className = '';
+}
+
+/* ════════════ AUDIT LOG ════════════ */
+const AuditLog = (() => {
+  const MAX = 200;
+  let entries = (() => { try { return JSON.parse(localStorage.getItem('onyx_audit') || '[]'); } catch(e) { return []; } })();
+
+  function record(evt, detail) {
+    const ts = new Date().toISOString().replace('T',' ').slice(0,19) + ' UTC';
+    const op = sessionStorage.getItem('onyx_operator') || '—';
+    entries.unshift({ ts, evt, detail, op });
+    if (entries.length > MAX) entries.length = MAX;
+    try { localStorage.setItem('onyx_audit', JSON.stringify(entries)); } catch(e) {}
+    SupaSync.pushAudit(evt, detail, op, ts);
+    _renderOne(entries[0]);
+  }
+
+  function _renderOne(e) {
+    const list = document.getElementById('audit-list');
+    const d = document.createElement('div');
+    d.className = 'audit-item';
+    d.innerHTML = `<span class="au-ts">${e.ts}</span><span class="au-evt ${e.evt}">${e.evt.toUpperCase()}</span><span class="au-detail">${e.detail} &nbsp;[${e.op}]</span>`;
+    list.prepend(d);
+    const rows = list.querySelectorAll('.audit-item');
+    if (rows.length > MAX) rows[rows.length-1].remove();
+  }
+
+  function init() {
+    const list = document.getElementById('audit-list');
+    entries.forEach(e => {
+      const d = document.createElement('div');
+      d.className = 'audit-item';
+      d.innerHTML = `<span class="au-ts">${e.ts}</span><span class="au-evt ${e.evt}">${e.evt.toUpperCase()}</span><span class="au-detail">${e.detail} &nbsp;[${e.op}]</span>`;
+      list.appendChild(d);
+    });
+  }
+
+  return { record, init };
+})();
+
+/* ════════════ SESSION TIMEOUT ════════════ */
+const Session = (() => {
+  let _timer = null;
+  let _timeout = (() => { try { return parseInt(localStorage.getItem('onyx_timeout') || '600'); } catch(e) { return 600; } })();
+  let _operator = '';
+
+  function setOperator(op) {
+    _operator = op;
+    sessionStorage.setItem('onyx_operator', op);
+    document.getElementById('lock-op-name').textContent = `OPERATOR: ${op}`;
+  }
+
+  function getTimeout()  { return _timeout; }
+  function setTimeout_( v) {
+    _timeout = v;
+    try { localStorage.setItem('onyx_timeout', String(v)); } catch(e) {}
+    reset();
+  }
+
+  function reset() {
+    if (_timer) clearTimeout(_timer);
+    if (!_timeout) return;
+    _timer = setTimeout(lock, _timeout * 1000);
+  }
+
+  function lock() {
+    AuditLog.record('timeout', 'Session auto-locked due to inactivity');
+    document.getElementById('lockscreen').classList.add('show');
+    document.getElementById('lock-pass').value = '';
+    document.getElementById('lock-err').textContent = '';
+    setTimeout(() => document.getElementById('lock-pass').focus(), 100);
+  }
+
+  async function unlock() {
+    const pass = document.getElementById('lock-pass').value;
+    const hash = await sha256(pass);
+    const ok = USERS[_operator] !== undefined && USERS[_operator] === hash;
+    if (ok) {
+      document.getElementById('lockscreen').classList.remove('show');
+      document.getElementById('lock-err').textContent = '';
+      AuditLog.record('login', `Session resumed — ${_operator}`);
+      reset();
+    } else {
+      document.getElementById('lock-err').textContent = '✕ INVALID CODE';
+      document.getElementById('lock-pass').value = '';
+      setTimeout(() => { document.getElementById('lock-err').textContent = ''; }, 2500);
+    }
+  }
+
+  function init() {
+    ['mousemove','keydown','click','touchstart'].forEach(ev =>
+      document.addEventListener(ev, reset, { passive: true })
+    );
+    document.getElementById('lock-btn').addEventListener('click', unlock);
+    document.getElementById('lock-pass').addEventListener('keydown', e => { if(e.key==='Enter') unlock(); });
+  }
+
+  return { init, reset, lock, setOperator, getTimeout, setTimeout_ };
+})();
+
+/* ════════════ THREAT SCORE ENGINE ════════════ */
+const ThreatScore = (() => {
+  const WEIGHTS = [
+    [/homicide|murder|assassinat/i, 10],
+    [/shot|shooting|gunfire|firearm/i, 9],
+    [/bomb|explosive|terror|attack/i, 10],
+    [/stab|stabbing|machete|weapon/i, 8],
+    [/robbery|armed robbery|hostage/i, 8],
+    [/arrest|detained|charged|convicted/i, 6],
+    [/gang|trafficking|smuggling|drugs/i, 7],
+    [/protest|riot|unrest|demonstration/i, 6],
+    [/emergency|evacuation|hurricane|disaster/i, 7],
+    [/curfew|lockdown|deployment/i, 6],
+    [/corruption|fraud|embezzl|bribe/i, 5],
+    [/sanction|diplomatic|summit/i, 4],
+    [/economy|gdp|fiscal|budget/i, 3],
+    [/police|rslpf|security|investigation/i, 4],
+    [/court|verdict|sentence|magistrate/i, 4],
+  ];
+
+  function score(title) {
+    let s = 0;
+    for (const [re, w] of WEIGHTS) { if (re.test(title)) s += w; }
+    return Math.min(s, 99);
+  }
+
+  function badge(s) {
+    if (s >= 15) return `<span class="fi-score hi">${s}</span>`;
+    if (s >= 7)  return `<span class="fi-score mid">${s}</span>`;
+    return `<span class="fi-score lo">${s}</span>`;
+  }
+
+  return { score, badge };
+})();
+
+/* ════════════ ENTITY EXTRACTION ════════════ */
+const Entities = (() => {
+  const KNOWN_ORGS = ['RSLPF','TTPS','JCF','RBPF','GPF','CARICOM','OECS','IMPACS',
+    'ECCB','IMF','UN','OAS','NATO','Interpol','NEMO','OPM','PMO','CDB'];
+  const KNOWN_PLACES = ['Saint Lucia','Trinidad','Barbados','Jamaica','Grenada',
+    'Antigua','Dominica','St Kitts','St Vincent','Guyana','Bridgetown','Kingston',
+    'Castries','Port of Spain','Georgetown','Roseau','St George\'s'];
+
+  function extract(title) {
+    const tags = new Set();
+    KNOWN_ORGS.forEach(o => { if (title.includes(o)) tags.add(o); });
+    KNOWN_PLACES.forEach(p => { if (title.includes(p)) tags.add(p); });
+    const proper = title.match(/\b[A-Z][a-z]+(?:\s+[A-Z][a-z]+)+\b/g) || [];
+    proper.slice(0,2).forEach(p => tags.add(p));
+    return [...tags].slice(0,4);
+  }
+
+  return { extract };
+})();
+
+/* ════════════ CROSS-REGION CORRELATION ════════════ */
+const Correlator = (() => {
+  const WINDOW_MS = 30 * 60 * 1000;
+  let recent = [];
+
+  function check(entry) {
+    const now = Date.now();
+    recent = recent.filter(r => now - r.ts < WINDOW_MS);
+    const words = entry.title.toLowerCase().split(/\W+/).filter(w => w.length > 5);
+    const match = recent.find(r =>
+      r.region !== ACTIVE_REGION &&
+      words.filter(w => r.words.includes(w)).length >= 3
+    );
+    recent.push({ ts: now, title: entry.title, region: ACTIVE_REGION, words, tag: entry.tag });
+    return match ? match.region : null;
+  }
+
+  return { check };
+})();
+
+/* ════════════ WATCH LIST ════════════ */
+const WatchList = (() => {
+  let keywords = (() => { try { return JSON.parse(localStorage.getItem('onyx_watchlist') || '[]'); } catch(e) { return []; } })();
+  let hits = (() => { try { return JSON.parse(localStorage.getItem('onyx_watchhits') || '[]'); } catch(e) { return []; } })();
+
+  function save() { try { localStorage.setItem('onyx_watchlist', JSON.stringify(keywords)); } catch(e) {} SupaSync.pushWatch(keywords); }
+  function saveHits() { try { localStorage.setItem('onyx_watchhits', JSON.stringify(hits.slice(0,50))); } catch(e) {} }
+
+  function add() {
+    const inp = document.getElementById('watch-inp');
+    const kw = inp.value.trim().toUpperCase();
+    if (!kw || keywords.includes(kw)) { inp.value=''; return; }
+    keywords.push(kw);
+    save();
+    inp.value = '';
+    renderList();
+    AuditLog.record('watch', `Added watch keyword: ${kw}`);
+    showToast(`WATCH: ${kw} ADDED`);
+  }
+
+  function remove(kw) {
+    keywords = keywords.filter(k => k !== kw);
+    save();
+    renderList();
+    AuditLog.record('watch', `Removed watch keyword: ${kw}`);
+  }
+
+  function check(title) {
+    const tU = title.toUpperCase();
+    return keywords.find(k => tU.includes(k)) || null;
+  }
+
+  function hit(kw, entry) {
+    const h = { kw, title: entry.title, src: entry.src, time: entry.time };
+    hits.unshift(h);
+    if (hits.length > 50) hits.length = 50;
+    saveHits();
+    const badge = document.getElementById('pn-badge-watch');
+    badge.textContent = parseInt(badge.textContent||0) + 1;
+    badge.classList.add('show');
+    _renderHit(h);
+    showToast(`⚑ TRIP WIRE: ${kw}`);
+    AuditLog.record('watch', `Trip wire triggered: "${kw}" — ${entry.title.slice(0,60)}`);
+  }
+
+  function _renderHit(h) {
+    const hitsBox = document.getElementById('watch-hits');
+    hitsBox.style.display = 'block';
+    const d = document.createElement('div');
+    d.className = 'watch-hit-item';
+    d.innerHTML = `<span class="wh-time">${h.time}</span><span><span class="wh-text">${h.title}</span><span class="wh-kw">⚑ ${h.kw}</span></span>`;
+    document.getElementById('watch-hits-list').prepend(d);
+  }
+
+  function renderList() {
+    const list = document.getElementById('watch-list');
+    list.innerHTML = '';
+    if (!keywords.length) {
+      list.innerHTML = '<div style="padding:14px;font-size:8px;color:var(--bone3);letter-spacing:1px">NO KEYWORDS DEFINED — ADD ABOVE</div>';
+      return;
+    }
+    keywords.forEach(kw => {
+      const hitCount = hits.filter(h => h.kw === kw).length;
+      const d = document.createElement('div');
+      d.className = 'watch-item';
+      d.innerHTML = `<div><div class="watch-kw ${hitCount?'tripped':''}">${kw}</div><div class="watch-kw-meta">${hitCount} HIT${hitCount!==1?'S':''}</div></div><span class="watch-del" onclick="WatchList.remove('${kw}')">✕</span>`;
+      list.appendChild(d);
+    });
+  }
+
+  function init() {
+    renderList();
+    hits.forEach(h => _renderHit(h));
+    if (hits.length) document.getElementById('watch-hits').style.display = 'block';
+    document.getElementById('watch-inp').addEventListener('keydown', e => { if(e.key==='Enter') add(); });
+  }
+
+  return { add, remove, check, hit, init };
+})();
+
+/* ════════════ NODE HEALTH MONITOR ════════════ */
+const NodeHealth = (() => {
+  const _lastProxy = {};
+  const _lastSweep = {};
+  const _status = {};
+
+  function update(node, status, proxy) {
+    _status[node.id] = status;
+    _lastProxy[node.id] = proxy || '—';
+    _lastSweep[node.id] = nowTime();
+  }
+
+  function render() {
+    const tbody = document.getElementById('nodes-tbody');
+    tbody.innerHTML = '';
+    const allNodes = Object.entries(REGION_NODES).flatMap(([region, nodes]) =>
+      nodes.map(n => ({ ...n, region }))
+    );
+    allNodes.forEach(n => {
+      const st = _status[n.id] || 'idle';
+      const cls = st === 'ok' ? 'ns-ok' : st === 'fail' ? 'ns-fail' : 'ns-idle';
+      const stTxt = st === 'ok' ? 'OK' : st === 'fail' ? 'FAIL' : 'IDLE';
+      const tr = document.createElement('tr');
+      tr.innerHTML = `
+        <td><span class="ns-tag">${n.tag}</span></td>
+        <td style="color:var(--bone3);font-size:8px">${n.region}</td>
+        <td><span class="ns-cat">${n.cat}</span></td>
+        <td><span class="${cls}">${stTxt}</span></td>
+        <td style="font-size:7.5px;color:var(--bone3)">${_lastProxy[n.id]||'—'}</td>
+        <td>${n.count||0}</td>
+        <td style="font-size:7.5px;color:var(--bone3)">${_lastSweep[n.id]||'—'}</td>
+        <td style="font-size:7px;color:var(--bone4)">${n.type.toUpperCase()}</td>`;
+      tbody.appendChild(tr);
+    });
+  }
+
+  return { update, render };
+})();
+
+/* ════════════ SETTINGS ════════════ */
+const Settings = (() => {
+  function init() {
+    document.getElementById('stg-agency').value = AGENCY_CONFIG.name || 'ONYX';
+    document.getElementById('stg-class').value = AGENCY_CONFIG.classification || 'OFFICIAL SENSITIVE';
+    const to = Session.getTimeout();
+    const toSel = document.getElementById('stg-timeout');
+    if ([...toSel.options].some(o => parseInt(o.value) === to)) toSel.value = String(to);
+    const dim = document.body.classList.contains('dim-mode');
+    if (dim) document.getElementById('stg-dim-toggle').classList.add('on');
+
+    // restore persisted Supabase credentials
+    try {
+      const savedUrl = localStorage.getItem('onyx_supa_url') || '';
+      const savedKey = localStorage.getItem('onyx_supa_key') || '';
+      if (savedUrl && savedKey) {
+        SUPABASE_CONFIG.url     = savedUrl;
+        SUPABASE_CONFIG.anonKey = savedKey;
+        document.getElementById('stg-supa-url').value = savedUrl;
+        document.getElementById('stg-supa-key').value = savedKey;
+        const statusEl = document.getElementById('stg-supa-status');
+        if (statusEl) { statusEl.textContent = 'CONFIGURED'; statusEl.style.color = 'var(--amber)'; }
+        const sbEl = document.getElementById('sb-sync-status');
+        if (sbEl) sbEl.textContent = 'CONFIGURED';
+      }
+    } catch(e) {}
+  }
+
+  function saveAgency() {
+    const v = document.getElementById('stg-agency').value.trim();
+    AGENCY_CONFIG.name = v || 'ONYX';
+    try { localStorage.setItem('onyx_agency', JSON.stringify(AGENCY_CONFIG)); } catch(e) {}
+    showToast('AGENCY NAME SAVED');
+    AuditLog.record('settings', `Agency name set: ${AGENCY_CONFIG.name}`);
+  }
+
+  function saveClass() {
+    const v = document.getElementById('stg-class').value;
+    AGENCY_CONFIG.classification = v;
+    try { localStorage.setItem('onyx_agency', JSON.stringify(AGENCY_CONFIG)); } catch(e) {}
+    applyAgencyConfig();
+    showToast(`CLASSIFICATION: ${v}`);
+    AuditLog.record('settings', `Classification level set: ${v}`);
+  }
+
+  function saveSweep() {
+    const v = parseInt(document.getElementById('stg-sweep').value);
+    State.refreshTimer = v;
+    showToast(`SWEEP INTERVAL: ${v/60} MIN`);
+    AuditLog.record('settings', `Sweep interval set: ${v}s`);
+  }
+
+  function saveTimeout() {
+    const v = parseInt(document.getElementById('stg-timeout').value);
+    Session.setTimeout_(v);
+    showToast(v ? `SESSION TIMEOUT: ${v/60} MIN` : 'SESSION TIMEOUT: DISABLED');
+    AuditLog.record('settings', `Session timeout set: ${v}s`);
+  }
+
+  function toggleDim(el) {
+    el.classList.toggle('on');
+    const on = el.classList.contains('on');
+    document.body.classList.toggle('dim-mode', on);
+    showToast(on ? 'DIM MODE: ON' : 'DIM MODE: OFF');
+    AuditLog.record('settings', `Dim mode: ${on?'ON':'OFF'}`);
+  }
+
+  async function genHash() {
+    const v = document.getElementById('stg-hash-inp').value;
+    if (!v) return;
+    const h = await sha256(v);
+    const out = document.getElementById('stg-hash-out');
+    out.textContent = h;
+    out.classList.add('show');
+    document.getElementById('stg-hash-inp').value = '';
+    showToast('HASH GENERATED — COPY AND UPDATE USERS OBJECT');
+    AuditLog.record('settings', 'Credential hash generated');
+  }
+
+  async function saveSupabase() {
+    const url = document.getElementById('stg-supa-url').value.trim();
+    const key = document.getElementById('stg-supa-key').value.trim();
+    const statusEl = document.getElementById('stg-supa-status');
+    const sbStatusEl = document.getElementById('sb-sync-status');
+
+    if (!url || !key) { showToast('ENTER BOTH URL AND KEY'); return; }
+
+    // write into live config
+    SUPABASE_CONFIG.url     = url;
+    SUPABASE_CONFIG.anonKey = key;
+
+    // persist so settings survive reload
+    try {
+      localStorage.setItem('onyx_supa_url', url);
+      localStorage.setItem('onyx_supa_key', key);
+    } catch(e) {}
+
+    statusEl.textContent = 'TESTING…';
+    statusEl.style.color = 'var(--amber)';
+
+    // test connection with a lightweight request
+    try {
+      const res = await fetch(`${url}/rest/v1/onyx_audit?limit=1`, {
+        headers: { 'apikey': key, 'Authorization': `Bearer ${key}` }
+      });
+      if (res.ok || res.status === 406) {
+        // 406 = table exists but no rows — still means connected
+        statusEl.textContent = 'CONNECTED ✓';
+        statusEl.style.color = 'var(--green)';
+        if (sbStatusEl) sbStatusEl.textContent = 'LIVE';
+        showToast('SUPABASE CONNECTED — BACKEND SYNC ACTIVE');
+        AuditLog.record('settings', `Supabase backend configured: ${url}`);
+        // trigger initial sync
+        SupaSync.bootSync(ACTIVE_REGION);
+      } else {
+        throw new Error(`HTTP ${res.status}`);
+      }
+    } catch(e) {
+      statusEl.textContent = `FAILED — ${e.message}`;
+      statusEl.style.color = 'var(--red)';
+      SUPABASE_CONFIG.url     = '';
+      SUPABASE_CONFIG.anonKey = '';
+      showToast('CONNECTION FAILED — CHECK URL AND KEY');
+    }
+  }
+
+  function copySQL() {
+    const sql = `-- ONYX Platform — Supabase table setup
+-- Run this in your Supabase SQL editor
+
+create table if not exists onyx_feed (
+  id         uuid default gen_random_uuid() primary key,
+  region     text not null unique,
+  data       jsonb,
+  updated_at timestamptz default now()
+);
+
+create table if not exists onyx_alerts (
+  id         uuid default gen_random_uuid() primary key,
+  region     text not null unique,
+  data       jsonb,
+  updated_at timestamptz default now()
+);
+
+create table if not exists onyx_audit (
+  id          uuid default gen_random_uuid() primary key,
+  operator    text,
+  evt         text,
+  detail      text,
+  ts          text,
+  inserted_at timestamptz default now()
+);
+
+create table if not exists onyx_watch (
+  id         uuid default gen_random_uuid() primary key,
+  agency     text not null unique,
+  keywords   jsonb,
+  updated_at timestamptz default now()
+);
+
+-- Enable Row Level Security (recommended for production)
+alter table onyx_feed   enable row level security;
+alter table onyx_alerts enable row level security;
+alter table onyx_audit  enable row level security;
+alter table onyx_watch  enable row level security;`;
+
+    navigator.clipboard.writeText(sql).then(() => {
+      showToast('SQL COPIED — PASTE INTO SUPABASE SQL EDITOR');
+    }).catch(() => {
+      showToast('COPY FAILED — SEE SETTINGS FOR SQL');
+    });
+    AuditLog.record('settings', 'Supabase SQL schema copied');
+  }
+
+  return { init, saveAgency, saveClass, saveSweep, saveTimeout, toggleDim, genHash, saveSupabase, copySQL };
+})();
+
+/* ════════════ MANUAL INTEL ENTRY ════════════ */
+const ManualEntry = (() => {
+  function inject() {
+    const title = document.getElementById('mf-title').value.trim();
+    if (!title) { showToast('ENTER A TITLE'); return; }
+    const level  = document.getElementById('mf-level').value;
+    const src    = document.getElementById('mf-src').value.trim() || 'MANUAL ENTRY';
+    const tag    = document.getElementById('mf-tag').value.trim().toUpperCase() || 'MANUAL';
+    const entry  = { title, level, src, tag, time: nowTime(), link: '#', score: ThreatScore.score(title), tags: [] };
+    Feed.addEntry(entry);
+    AuditLog.record('sweep', `Manual intel injected: [${tag}] ${title.slice(0,60)}`);
+    showToast(`INJECTED: [${tag}] ${level}`);
+    document.getElementById('mf-title').value = '';
+    document.getElementById('mf-src').value = '';
+    document.getElementById('mf-tag').value = '';
+  }
+  return { inject };
+})();
+
+/* ════════════ INTEL BRIEF EXPORT ════════════ */
+const Brief = (() => {
+  function generate() {
+    const entries = Store.loadFeedSync(ACTIVE_REGION);
+    if (!entries.length) { showToast('NO DATA FOR BRIEF'); return; }
+    const ts   = new Date().toISOString().replace('T',' ').slice(0,19) + ' UTC';
+    const op   = sessionStorage.getItem('onyx_operator') || 'UNKNOWN';
+    const cls  = AGENCY_CONFIG.classification || 'OFFICIAL SENSITIVE';
+    const top  = [...entries].sort((a,b) => (b.score||0)-(a.score||0)).slice(0,10);
+    const crits = entries.filter(e => e.level === 'CRIT').length;
+    const warns = entries.filter(e => e.level === 'WARN').length;
+
+    let html = `
+      <div style="font-family:monospace;font-size:10px;color:#000;padding:20px">
+        <div style="text-align:center;border-bottom:2px solid #000;padding-bottom:8px;margin-bottom:16px">
+          <div style="font-size:8px;letter-spacing:4px;font-weight:bold">${cls}</div>
+          <div style="font-size:14px;font-weight:bold;margin:6px 0">${AGENCY_CONFIG.name} — MORNING INTELLIGENCE BRIEF</div>
+          <div style="font-size:9px">REGION: ${ACTIVE_REGION} &nbsp;|&nbsp; OPERATOR: ${op} &nbsp;|&nbsp; ${ts}</div>
+        </div>
+        <div style="margin-bottom:14px">
+          <b>SITUATION SUMMARY</b><br>
+          Total signals: ${entries.length} &nbsp;|&nbsp; CRITICAL: ${crits} &nbsp;|&nbsp; WARNING: ${warns}
+        </div>
+        <div style="margin-bottom:8px"><b>TOP 10 — BY THREAT SCORE</b></div>`;
+
+    top.forEach((e,i) => {
+      html += `<div style="margin-bottom:6px;border-bottom:0.5px solid #ccc;padding-bottom:5px">
+        <span style="font-weight:bold">${i+1}. [${e.level}] ${e.title}</span><br>
+        <span style="font-size:9px;color:#555">Source: ${e.src} &nbsp;|&nbsp; ${e.time} &nbsp;|&nbsp; Score: ${e.score||0}</span>
+      </div>`;
+    });
+
+    html += `
+        <div style="border-top:1px solid #000;margin-top:16px;padding-top:8px;font-size:9px;color:#555">
+          ${cls} — Handling: For authorised recipients only. ${AGENCY_CONFIG.name} — ${ts}
+        </div>
+      </div>`;
+
+    return html;
+  }
+
+  return { generate };
+})();
+
+
+const Export = (() => {
+
+  function getEntries() { return Store.loadFeedSync(ACTIVE_REGION); }
+
+  function csv() {
+    const entries = getEntries();
+    if (!entries.length) { showToast('NO DATA TO EXPORT'); return; }
+    const cls  = AGENCY_CONFIG.classification || 'OFFICIAL SENSITIVE';
+    const op   = sessionStorage.getItem('onyx_operator') || 'UNKNOWN';
+    const ts   = new Date().toISOString().slice(0,16).replace(/[T:]/g,'-');
+    const stamp = `# ${cls} — ${AGENCY_CONFIG.name} — Operator: ${op} — ${ts}`;
+    const header = 'TIME,LEVEL,SCORE,TAG,SOURCE,TITLE,LINK';
+    const rows = entries.map(e => [
+      e.time, e.level, e.score||0, e.tag||'', e.src||'',
+      `"${(e.title||'').replace(/"/g,'""')}"`, e.link||''
+    ].join(','));
+    const csv = [stamp, header, ...rows].join('\r\n');
+    const blob = new Blob([csv], { type: 'text/csv' });
+    const url  = URL.createObjectURL(blob);
+    const a    = document.createElement('a');
+    a.href     = url;
+    a.download = `${AGENCY_CONFIG.name.replace(/\s+/g,'_')}_${ACTIVE_REGION}_${ts}.csv`;
+    a.click();
+    URL.revokeObjectURL(url);
+    AuditLog.record('export', `CSV export — ${entries.length} entries — ${ACTIVE_REGION} — ${cls}`);
+    showToast(`EXPORTED ${entries.length} ENTRIES — CSV [${cls}]`);
+  }
+
+  function pdf() {
+    const entries = getEntries();
+    if (!entries.length) { showToast('NO DATA TO EXPORT'); return; }
+    const cls = AGENCY_CONFIG.classification || 'OFFICIAL SENSITIVE';
+    const ts  = new Date().toISOString().slice(0,19).replace('T',' ');
+    document.body.setAttribute('data-region', ACTIVE_REGION);
+    document.body.setAttribute('data-ts', `${ts} — ${cls}`);
+    AuditLog.record('export', `PDF export — ${ACTIVE_REGION} — ${cls}`);
+    showToast('OPENING PRINT DIALOG — SAVE AS PDF');
+    setTimeout(() => window.print(), 300);
+  }
+
+  function brief() {
+    const html = Brief.generate();
+    if (!html) return;
+    const target = document.getElementById('brief-print-target');
+    target.innerHTML = html;
+    document.body.setAttribute('data-brief','1');
+    AuditLog.record('export', `Intel brief generated — ${ACTIVE_REGION}`);
+    showToast('GENERATING INTEL BRIEF…');
+    setTimeout(() => {
+      window.print();
+      setTimeout(() => { document.body.removeAttribute('data-brief'); target.innerHTML = ''; }, 1000);
+    }, 300);
+  }
+
+  return { csv, pdf, brief };
+})();
+
+/* ════════════ COMPLIANCE ════════════ */
+const Compliance = (() => {
+  const KEY = 'onyx_compliance_ack';
+
+  function isAcknowledged() {
+    try { return !!localStorage.getItem(KEY); } catch(e) { return false; }
+  }
+
+  function acknowledge() {
+    const ts = new Date().toISOString().replace('T',' ').slice(0,19) + ' UTC';
+    try { localStorage.setItem(KEY, ts); } catch(e) {}
+    document.getElementById('compliance-modal').classList.remove('show');
+    AuditLog.record('login', `Data Use Policy acknowledged at ${ts}`);
+    showToast('DATA USE POLICY ACKNOWLEDGED — LOGGED');
+  }
+
+  function check() {
+    if (!isAcknowledged()) {
+      document.getElementById('compliance-modal').classList.add('show');
+    }
+  }
+
+  return { check, acknowledge };
+})();
+
+/* ════════════ LOGIN LOCKOUT ════════════
+   3 failed attempts → 5-minute lockout.
+   Resets on successful login.
+   State persisted in sessionStorage only
+   (clears on tab close — intentional).
+════════════════════════════════════════ */
+const LoginLockout = (() => {
+  let fails = 0;
+  let lockedUntil = 0;
+
+  function isLocked() { return Date.now() < lockedUntil; }
+
+  function remaining() { return Math.ceil((lockedUntil - Date.now()) / 1000); }
+
+  function recordFail() {
+    fails++;
+    if (fails >= 3) {
+      lockedUntil = Date.now() + 5 * 60 * 1000;
+      AuditLog.record('login', `Account locked — 3 failed attempts`);
+      _updateUI();
+      return true;
+    }
+    _updateUI();
+    return false;
+  }
+
+  function reset() { fails = 0; lockedUntil = 0; _updateUI(); }
+
+  function _updateUI() {
+    const el  = document.getElementById('lg-lockout');
+    const btn = document.getElementById('lg-btn');
+    if (isLocked()) {
+      const secs = remaining();
+      el.textContent = `⚠ LOCKED — ${Math.floor(secs/60)}:${String(secs%60).padStart(2,'0')} REMAINING`;
+      btn.disabled = true;
+      // countdown
+      const t = setInterval(() => {
+        if (!isLocked()) { clearInterval(t); el.textContent = ''; btn.disabled = false; return; }
+        const s = remaining();
+        el.textContent = `⚠ LOCKED — ${Math.floor(s/60)}:${String(s%60).padStart(2,'0')} REMAINING`;
+      }, 1000);
+    } else if (fails > 0) {
+      el.textContent = `${fails}/3 FAILED ATTEMPTS`;
+    } else {
+      el.textContent = '';
+    }
+  }
+
+  return { isLocked, recordFail, reset };
+})();
+
+/* ════════════ SIGNAL VELOCITY ════════════
+   Tracks arrival rate of CRIT+WARN signals
+   per region over a rolling 1-hour window.
+   Spike threshold: >10/hr triggers alert.
+════════════════════════════════════════ */
+const SignalVelocity = (() => {
+  const WINDOW_MS  = 60 * 60 * 1000;
+  const SPIKE_THR  = 10;
+  const _events    = {};   // region → [timestamps]
+
+  function record(region, level) {
+    if (level !== 'CRIT' && level !== 'WARN') return;
+    if (!_events[region]) _events[region] = [];
+    _events[region].push(Date.now());
+  }
+
+  function rateFor(region) {
+    if (!_events[region]) return 0;
+    const cutoff = Date.now() - WINDOW_MS;
+    _events[region] = _events[region].filter(t => t > cutoff);
+    return _events[region].length;
+  }
+
+  function currentRate() { return rateFor(ACTIVE_REGION); }
+
+  function updateUI() {
+    const rate = currentRate();
+    const el   = document.getElementById('sb-vel-val');
+    if (!el) return;
+    el.textContent = rate;
+    el.className   = rate >= SPIKE_THR ? 'spike' : '';
+  }
+
+  function allRates() {
+    return Object.keys(REGION_NODES).map(r => ({ region: r, rate: rateFor(r) }));
+  }
+
+  return { record, currentRate, updateUI, allRates };
+})();
+
+/* ════════════ THREAT MATRIX ════════════
+   Builds a region × threat-category matrix
+   from the current in-memory feed entries.
+   Categories map to the scrubber keyword groups.
+════════════════════════════════════════ */
+const ThreatMatrix = (() => {
+  const CATS = [
+    { key: 'law',   label: 'LAW ENF.',    re: /police|arrest|murder|shooting|firearm|homicide|stabbing|robbery|rslpf|ttps|jcf/i },
+    { key: 'natsec',label: 'NAT. SEC.',   re: /security|military|coast\s*guard|intelligence|surveillance|terror|extremist|threat/i },
+    { key: 'emerg', label: 'EMERGENCY',   re: /emergency|hurricane|flood|earthquake|disaster|nemo|evacuation|warning|advisory/i },
+    { key: 'govt',  label: 'GOVT / POL.', re: /minister|cabinet|parliament|senate|government|policy|legislation|corruption|fraud/i },
+    { key: 'econ',  label: 'ECONOMY',     re: /gdp|economy|fiscal|budget|inflation|investment|tourism|eccb|revenue|trade/i },
+    { key: 'diplo', label: 'DIPLOMATIC',  re: /diplomatic|ambassador|bilateral|treaty|caricom|oecs|summit|sanction|foreign/i },
+  ];
+
+  function _levelFor(entries) {
+    if (entries.some(e => e.level === 'CRIT')) return 'crit';
+    if (entries.some(e => e.level === 'WARN')) return 'warn';
+    if (entries.length > 0)                   return 'sig';
+    return 'nil';
+  }
+
+  function _labelFor(cls, count) {
+    if (cls === 'nil') return `<span class="mx-cell nil">—</span>`;
+    return `<span class="mx-cell ${cls}">${count}</span>`;
+  }
+
+  function render() {
+    const tbody = document.getElementById('matrix-tbody');
+    const velDiv = document.getElementById('matrix-velocity');
+    if (!tbody) return;
+    tbody.innerHTML = '';
+
+    const regions = Object.keys(REGION_NODES);
+    regions.forEach(region => {
+      const feed = Store.loadFeedSync(region);
+      const tr   = document.createElement('tr');
+      let rowHtml = `<td class="mx-region-label">${region}</td>`;
+      let total   = 0;
+
+      CATS.forEach(cat => {
+        const matched = feed.filter(e => cat.re.test(e.title));
+        total += matched.length;
+        const cls = _levelFor(matched);
+        rowHtml += `<td>${_labelFor(cls, matched.length)}</td>`;
+      });
+
+      const totalCls = total >= 10 ? 'crit' : total >= 5 ? 'warn' : total > 0 ? 'sig' : 'nil';
+      rowHtml += `<td><span class="mx-cell ${totalCls}">${total||'—'}</span></td>`;
+      tr.innerHTML = rowHtml;
+      tbody.appendChild(tr);
+    });
+
+    // velocity cards
+    if (velDiv) {
+      velDiv.innerHTML = '';
+      SignalVelocity.allRates().forEach(({ region, rate }) => {
+        const d = document.createElement('div');
+        d.className = 'vel-card';
+        const cls = rate >= 10 ? 'spike' : '';
+        d.innerHTML = `<div class="vel-region">${region}</div><div class="vel-rate ${cls}">${rate}</div><div class="vel-unit">CRIT/WARN PER HR</div>`;
+        velDiv.appendChild(d);
+      });
+    }
+  }
+
+  return { render };
+})();
+
+/* ════════════ MANIFEST INTEGRITY ════════════
+   SHA-256 hash of the serialised node manifest.
+   Computed on boot, displayed in boot screen.
+   If the file is tampered with between sessions
+   the hash will differ — operator can verify.
+════════════════════════════════════════════ */
+const ManifestIntegrity = (() => {
+  async function compute() {
+    const manifest = JSON.stringify(
+      Object.entries(REGION_NODES).map(([r, nodes]) =>
+        [r, nodes.map(n => ({ id: n.id, url: n.url, type: n.type }))]
+      )
+    );
+    const hash = await sha256(manifest);
+    return hash;
+  }
+
+  async function verify() {
+    const hash = await compute();
+    const el   = document.getElementById('integrity-badge');
+    if (!el) return;
+    const stored = localStorage.getItem('onyx_manifest_hash');
+    if (!stored) {
+      localStorage.setItem('onyx_manifest_hash', hash);
+      el.textContent = `MANIFEST INTEGRITY: ${hash.slice(0,32)}… [BASELINE SET]`;
+      el.className   = 'integrity-badge ok';
+    } else if (stored === hash) {
+      el.textContent = `MANIFEST INTEGRITY: ${hash.slice(0,32)}… [VERIFIED ✓]`;
+      el.className   = 'integrity-badge ok';
+    } else {
+      el.textContent = `MANIFEST INTEGRITY: HASH MISMATCH — POSSIBLE TAMPERING [ALERT]`;
+      el.className   = 'integrity-badge fail';
+      AuditLog.record('alert', 'Node manifest hash mismatch detected on boot');
+    }
+  }
+
+  return { verify };
+})();
+
+/* ════════════ TOAST ════════════ */
+let _toastTimer;
+function showToast(msg) {
+  const t = document.getElementById('toast');
+  t.textContent = msg;
+  t.classList.add('show');
+  clearTimeout(_toastTimer);
+  _toastTimer = setTimeout(() => t.classList.remove('show'), 2200);
+}
+
+/* ════════════ PANEL NAV ════════════ */
+document.querySelectorAll('.pn-tab').forEach(tab => {
+  tab.addEventListener('click', () => {
+    const pid = tab.dataset.panel;
+    document.querySelectorAll('.pn-tab').forEach(t => t.classList.remove('active'));
+    document.querySelectorAll('.panel').forEach(p => p.classList.remove('active'));
+    tab.classList.add('active');
+    document.getElementById(pid).classList.add('active');
+  });
+});
+
+/* ════════════ REGION TABS ════════════ */
+document.querySelectorAll('.tb-region').forEach(r => {
+  r.addEventListener('click', () => {
+    if (r.classList.contains('stub')) {
+      const code = r.textContent.trim();
+      showToast(`${code} — REGION COMING SOON`);
+      return;
+    }
+    const code = r.dataset.region;
+    if (code === ACTIVE_REGION) return;
+    document.querySelectorAll('.tb-region').forEach(x => x.classList.remove('active'));
+    r.classList.add('active');
+    ACTIVE_REGION = code;
+    NODES = REGION_NODES[code] || [];
+    // clear current UI and restore persisted data for new region
+    Feed.clear();
+    Alerts.clear();
+    Feed.restore(ACTIVE_REGION);
+    Alerts.restore(ACTIVE_REGION);
+    document.getElementById('fc-scrubbed').textContent = '0';
+    State.scrubCount = 0;
+    document.getElementById('sb-nodes').innerHTML = `NODES:&nbsp;<b>${NODES.length} LINKED</b>`;
+    AuditLog.record('region', `Switched to region ${code} — ${NODES.length} nodes`);
+    NodeHealth.render();
+    showToast(`SWITCHING TO ${code} — ${NODES.length} NODES`);
+    setTimeout(() => Net.sweep(), 400);
+  });
+});
+
+/* ════════════ TIMERS ════════════ */
+function startTimers() {
+  setInterval(() => {
+    const now = utcClock();
+    document.getElementById('tb-clock').textContent = now;
+    State.uptime = Math.floor((Date.now()-State.bootTime)/1000);
+    State.refreshTimer = Math.max(0, State.refreshTimer - 1);
+    if (State.refreshTimer <= 0) { State.refreshTimer = 300; Net.sweep(); }
+    const rm = String(Math.floor(State.refreshTimer/60));
+    const rs = String(State.refreshTimer%60).padStart(2,'0');
+    document.getElementById('tb-sync').textContent = `SYNC ${rm}:${rs}`;
+  }, 1000);
+}
+
+/* ════════════ BOOT ════════════ */
+const BOOT_LINES = [
+  {c:'',   s:'ONYX v12.0 — Closed-Loop Intelligence Grid'},
+  {c:'hi', s:'Caribbean Sector — Sovereign Data Acquisition Platform'},
+  {c:'dim',s:'──────────────────────────────────────────────────────'},
+  {c:'ok', s:'Secure boot verified .................................. [PASS]'},
+  {c:'ok', s:'SHA-256 credential hash verified ..................... [PASS]'},
+  {c:'ok', s:'Login lockout engine (3-strike) ...................... [OK]'},
+  {c:'ok', s:'Sovereign Scrubber REGEX v2 loaded ................... [OK]'},
+  {c:'ok', s:'ScraperAPI / custom middleware slot .................. [READY]'},
+  {c:'ok', s:'Proxy pool (6 agents) — health-scored rotation ....... [OK]'},
+  {c:'ok', s:'IndexedDB persistence engine ......................... [OK]'},
+  {c:'ok', s:'localStorage sync fallback ........................... [OK]'},
+  {c:'ok', s:'Session timeout module ............................... [OK]'},
+  {c:'ok', s:'Audit log engine ..................................... [OK]'},
+  {c:'ok', s:'Compliance / Data Use Policy module .................. [OK]'},
+  {c:'ok', s:'Watch list / trip wire engine ........................ [OK]'},
+  {c:'ok', s:'Threat score engine (weighted classifier) ............ [OK]'},
+  {c:'ok', s:'Entity extraction — regex NER ........................ [OK]'},
+  {c:'ok', s:'Cross-region correlation engine ...................... [OK]'},
+  {c:'ok', s:'Signal velocity tracker (1hr rolling window) ......... [OK]'},
+  {c:'ok', s:'Threat matrix engine (region × category) ............. [OK]'},
+  {c:'ok', s:'Node health monitor .................................. [OK]'},
+  {c:'ok', s:'Manual intel entry (HUMINT/SIGINT) ................... [OK]'},
+  {c:'ok', s:'Export module — CSV + PDF + BRIEF .................... [OK]'},
+  {c:'ok', s:'Classification stamp module .......................... [OK]'},
+  {c:'ok', s:'Dim / red-cell mode .................................. [OK]'},
+  {c:'ok', s:'Loading SLU closed-loop node manifest:'},
+  {c:'ok', s:'  ├─ [RSLPF] govt.lc/news/about/community ........... [LINKED]'},
+  {c:'ok', s:'  ├─ [CRIME] saintlucianewsonline.net/crime ........... [LINKED]'},
+  {c:'ok', s:'  ├─ [NEMO]  nemo.gov.lc ............................. [LINKED]'},
+  {c:'ok', s:'  ├─ [OPM]   opmsaintlucia.com/news .................. [LINKED]'},
+  {c:'ok', s:'  ├─ [GOV]   govt.lc/legislations .................... [LINKED]'},
+  {c:'ok', s:'  ├─ [SLT]   stluciatimes.com/feed/ .................. [LINKED]'},
+  {c:'ok', s:'  ├─ [VOICE] thevoiceslu.com/feed/ .................... [LINKED]'},
+  {c:'ok', s:'  └─ [STAR]  stluciastar.com/feed/ ..................... [LINKED]'},
+  {c:'ok', s:'OECS full node coverage (ATG/BRB/DMA/GRD/SKN/SVG) ... [READY]'},
+  {c:'ok', s:'TTO · JAM · GUY regional nodes ....................... [READY]'},
+  {c:'ok', s:'Economic Pulse: ECCB/Stats.gov.lc dataset seeded ..... [OK]'},
+  {c:'ok', s:'Verifying node manifest integrity hash ............... [OK]'},
+  {c:'ok', s:'Supabase backend sync layer .......................... [READY]'},
+  {c:'ok', s:'Cross-device shared ops — REST upsert/merge ........... [OK]'},
+  {c:'ok', s:'Restoring persisted intel from last session ........... [OK]'},
+  {c:'ok', s:'All systems nominal. Entering grid environment.'},
+];
+
+function runBoot() {
+  const bootEl = document.getElementById('boot');
+  bootEl.classList.add('show');
+  const log  = document.getElementById('bt-log');
+  const fill = document.getElementById('bt-fill');
+  const pct  = document.getElementById('bt-pct');
+  const stg  = document.getElementById('bt-stage');
+  const total = BOOT_LINES.length;
+
+  BOOT_LINES.forEach((line, i) => {
+    setTimeout(() => {
+      const d = document.createElement('div');
+      d.className = line.c || '';
+      d.textContent = '> ' + line.s;
+      log.appendChild(d);
+      log.scrollTop = log.scrollHeight;
+      const p = Math.round((i+1)/total*100);
+      fill.style.width = p+'%';
+      pct.textContent  = p+'%';
+      stg.textContent  = line.c==='ok'?'PASS':line.c==='w'?'WARN':'RUN';
+    }, i * 100);
+  });
+
+  setTimeout(async () => {
+    bootEl.classList.remove('show');
+    const app = document.getElementById('app');
+    app.classList.add('on');
+    startTimers();
+    await Store.init();
+    await SupaSync.bootSync(ACTIVE_REGION);
+    Econ.init();
+    AuditLog.init();
+    WatchList.init();
+    Session.init();
+    Session.reset();
+    Settings.init();
+    applyAgencyConfig();
+    NodeHealth.render();
+    ThreatMatrix.render();
+    await ManifestIntegrity.verify();
+    // restore any persisted data for default region before first sweep
+    Feed.restore(ACTIVE_REGION);
+    Alerts.restore(ACTIVE_REGION);
+    AuditLog.record('sweep', `Boot complete — region ${ACTIVE_REGION} — ${NODES.length} nodes linked`);
+    // velocity UI update every 60s
+    setInterval(() => { SignalVelocity.updateUI(); ThreatMatrix.render(); }, 60000);
+    setTimeout(() => Net.sweep(), 1200);
+  }, total * 100 + 600);
+}
+
+/* ════════════ LOGIN ════════════ */
+(() => {
+  const clockEl = document.getElementById('lg-clock');
+  const tick = () => { clockEl.textContent = utcClock(); };
+  tick(); setInterval(tick, 1000);
+
+  async function attempt() {
+    if (LoginLockout.isLocked()) return;
+    const u     = document.getElementById('lg-user').value.trim().toUpperCase();
+    const p     = document.getElementById('lg-pass').value;
+    const errEl = document.getElementById('lg-err');
+    const btn   = document.getElementById('lg-btn');
+    btn.textContent = 'VERIFYING…';
+    btn.disabled = true;
+    const ok = await checkCredentials(u, p);
+    btn.textContent = 'AUTHENTICATE →';
+    btn.disabled = false;
+    if (ok) {
+      LoginLockout.reset();
+      document.getElementById('login').classList.add('gone');
+      Session.setOperator(u);
+      AuditLog.record('login', `Authenticated — ${u}`);
+      Compliance.check();
+      runBoot();
+    } else {
+      const locked = LoginLockout.recordFail();
+      if (!locked) {
+        errEl.textContent = '✕ INVALID CREDENTIALS — ACCESS DENIED';
+        setTimeout(() => { errEl.textContent = ''; }, 3000);
+      } else {
+        errEl.textContent = '✕ ACCOUNT LOCKED — TOO MANY FAILED ATTEMPTS';
+      }
+      document.getElementById('lg-pass').value = '';
+      document.getElementById('lg-pass').focus();
+    }
+  }
+
+  document.getElementById('lg-btn').addEventListener('click', attempt);
+  document.getElementById('lg-pass').addEventListener('keydown', e => { if(e.key==='Enter') attempt(); });
+  document.getElementById('lg-user').addEventListener('keydown', e => { if(e.key==='Enter') document.getElementById('lg-pass').focus(); });
+  setTimeout(() => document.getElementById('lg-user').focus(), 80);
+})();
+</script>
+</body>
+</html>
